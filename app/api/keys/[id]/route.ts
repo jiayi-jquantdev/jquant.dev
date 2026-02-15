@@ -40,21 +40,63 @@ export async function DELETE(req: NextRequest, context: any) {
   // if deleted key maps to a subscription price, try to cancel subscriptions for this user
   try {
     if (deletedKey) {
+      // 1) If we have a subscriptionId saved on the key, cancel that subscription directly
       if (deletedKey.subscriptionId) {
-        await stripe.subscriptions.del(deletedKey.subscriptionId as string).catch(()=>null);
+        try {
+          await stripe.subscriptions.del(String(deletedKey.subscriptionId));
+        } catch (e) {
+          // ignore
+        }
       } else if (deletedKey.priceKeyName) {
-        const price = await stripe.prices.retrieve(deletedKey.priceKeyName as string).catch(()=>null);
-        if (price && (price as any).recurring) {
-          const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-          const customer = customers.data[0];
-          if (customer) {
-            const subs = await stripe.subscriptions.list({ customer: customer.id, status: 'all', limit: 100 });
-            for (const s of subs.data) {
-              for (const item of s.items.data) {
-                if (item.price && item.price.id === (price as any).id) {
-                  await stripe.subscriptions.del(s.id);
+        // 2) Resolve the stored priceKeyName to an actual Stripe price id if an env var was stored
+        let targetPriceId = process.env[deletedKey.priceKeyName] || deletedKey.priceKeyName;
+        // if targetPriceId looks like an env var name (no price_ prefix) but wasn't found, try using it directly
+        if (!targetPriceId) targetPriceId = deletedKey.priceKeyName;
+
+        // try to retrieve the price to confirm it's recurring and get its id
+        let priceObj: any = null;
+        try {
+          if (typeof targetPriceId === 'string') {
+            priceObj = await stripe.prices.retrieve(targetPriceId as string).catch(()=>null);
+          }
+        } catch (e) {
+          priceObj = null;
+        }
+
+        // if the price is recurring (subscription), find all customers with this user's email and cancel matching subscriptions
+        if (priceObj && priceObj.recurring) {
+          // fetch customers by email (may be multiple)
+          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as any));
+          for (const customer of (customers.data || [])) {
+            const subs = await stripe.subscriptions.list({ customer: customer.id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as any));
+            for (const s of (subs.data || [])) {
+              try {
+                // check items for matching price id
+                const match = (s.items.data || []).some((it: any) => {
+                  if (!it.price) return false;
+                  // compare price id directly
+                  if (typeof targetPriceId === 'string' && it.price.id === targetPriceId) return true;
+                  // compare against retrieved price id
+                  if (priceObj && it.price.id === priceObj.id) return true;
+                  // also accept match if price product matches (same product across plans)
+                  if (priceObj && it.price.product && it.price.product === priceObj.product) return true;
+                  return false;
+                });
+                if (match) {
+                  await stripe.subscriptions.del(s.id).catch(()=>null);
                 }
+              } catch (e) {
+                // ignore per-subscription errors
               }
+            }
+          }
+        } else {
+          // If we couldn't retrieve a recurring price, as a fallback try to cancel any subscription that references this user's email
+          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as any));
+          for (const customer of (customers.data || [])) {
+            const subs = await stripe.subscriptions.list({ customer: customer.id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as any));
+            for (const s of (subs.data || [])) {
+              try { await stripe.subscriptions.del(s.id).catch(()=>null); } catch (e) {}
             }
           }
         }
