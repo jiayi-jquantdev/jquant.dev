@@ -209,5 +209,33 @@ button:focus, a:focus, input:focus {
   outline: none;
 }
 
+/* Remove any outline/hover ring and box-shadow for buttons (new buttons) */
+button:hover, .btn:hover, button:focus, .btn:focus, button:focus-visible, .btn:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Header logout: keep top-menu logout visually flat (no highlighted background) */
+header nav > button {
+  background: transparent !important;
+  border: none !important;
+  color: var(--background) !important;
+  padding: 0 !important;
+}
+header nav > button:hover {
+  background: transparent !important;
+  color: var(--background) !important;
+}
+
+
 /* Make main content horizontally scroll within limits */
 .max-w-7xl { max-width: 80rem; }
+
+/* Three-dot popup menus: force pure white background and sit above other controls */
+.key-menu {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  box-shadow: var(--shadow) !important;
+  z-index: 50 !important;
+}

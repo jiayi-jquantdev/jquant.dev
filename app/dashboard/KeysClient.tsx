@@ -132,7 +132,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
                     <div className="relative">
                       <button onClick={() => toggleMenu(keyId)} className="px-2 py-1 border rounded">⋯</button>
                       {openMenu === keyId && (
-                        <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2">
+                        <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2 key-menu">
                           <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
                           {(k as any).tier === 'free' && <button onClick={() => { setRevealKey((k as any).key || (k as any).id); setOpenMenu(null); }} className="w-full text-left px-2 py-1">View key</button>}
                         </div>
