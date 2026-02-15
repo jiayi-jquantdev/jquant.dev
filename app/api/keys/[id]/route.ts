@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { verifyJwt } from "../../../../lib/auth";
 import { readJson, writeJson } from "../../../../lib/fs-utils";
-import { cookies } from "next/headers";
+import { findUserByApiKey } from "../../../../lib/db";
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2022-11-15' });
@@ -17,12 +17,33 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     const auth = req.headers.get('authorization') || '';
     if (auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
   }
-  const payload = token ? verifyJwt(token) : null;
-  if (!payload) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+  let payload = token ? verifyJwt(token) : null;
+  let actingUserId: string | null = null;
+  if (payload && (payload as any).id) {
+    actingUserId = String((payload as any).id);
+  }
+
+  // If no JWT payload, allow fallback to API key in Authorization header
+  if (!actingUserId) {
+    const authHeader = req.headers.get('authorization') || '';
+    if (authHeader.startsWith('Bearer ')) {
+      const possibleKey = authHeader.replace('Bearer ', '').trim();
+      try {
+        const found = await findUserByApiKey(possibleKey);
+        if (found && found.user && (found.user as any).id) {
+          actingUserId = String((found.user as any).id);
+        }
+      } catch (e) {
+        // ignore and fall through to unauthorized
+      }
+    }
+  }
+
+  if (!actingUserId) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
 
   // file-based users.json handling
   const users = await readJson<{ id: string; email: string; keys?: any[] }[]>('users.json');
-  const user = users.find(u => u.id === String(payload.id));
+  const user = users.find(u => u.id === actingUserId);
   if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   const keys = user.keys || [];
   const kept: unknown[] = [];
