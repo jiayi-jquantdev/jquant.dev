@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #2D2D2D;
+  --header-height: 4rem;
+  --footer-height: 4rem;
 }
 
 @theme inline {
@@ -18,12 +20,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 
 .sidebar {
   background: #ffffff;
   color: var(--foreground);
   border-right: 1px solid #eee;
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
 }
 
 .card {
@@ -44,4 +50,10 @@ body {
 .border-foreground { border-color: #2b2b2b !important; }
 .btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-primary { background: var(--foreground); color: var(--background); padding: .5rem 1rem; border-radius: .375rem; border: none; }
-.footer { background: var(--foreground); color: var(--background); }
+.footer { background: var(--foreground); color: var(--background); position: fixed; bottom: 0; left: 0; }
+
+/* Ensure interactive elements show pointer */
+button, a, input, select, textarea { cursor: pointer; }
+
+/* Make main content horizontally scroll within limits */
+.max-w-7xl { max-width: 80rem; }

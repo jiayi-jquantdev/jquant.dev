@@ -25,7 +25,7 @@ export default function PaymentMethodsClient() {
     <div>
       <p className="text-background mb-3">Manage your API subscriptions.</p>
       <div className="flex gap-3">
-        <button onClick={addPaymentMethod} disabled={loading} className="btn btn-primary">Add payment method</button>
+        <button onClick={addPaymentMethod} disabled={loading} className="btn btn-primary">Manage subscriptions</button>
       </div>
       {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
     </div>

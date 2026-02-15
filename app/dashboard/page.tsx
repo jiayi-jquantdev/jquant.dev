@@ -35,7 +35,6 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel p-6 rounded shadow">
-          <h3 className="font-medium mb-2">Payment methods</h3>
           <PaymentMethodsClient />
         </section>
       </div>
