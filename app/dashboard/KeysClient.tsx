@@ -13,7 +13,11 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   async function fetchKeys() {
     setLoading(true);
     try {
-      const res = await fetch('/api/keys', { credentials: 'include' });
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const tokenMatch = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
+      const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/keys', { credentials: 'include', headers });
       if (res.ok) {
         const j = await res.json();
         setKeys(j.keys || []);
@@ -30,7 +34,11 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   async function createKey() {
     setLoading(true);
     try {
-      const res = await fetch('/api/keys', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: 'paid' }) });
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const tokenMatch = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
+      const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/keys', { method: 'POST', credentials: 'include', headers, body: JSON.stringify({ tier: 'paid' }) });
       if (res.ok) {
         await fetchKeys();
       } else {
@@ -50,7 +58,11 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   async function handleDelete(keyId: string) {
     setProcessing(true);
     try {
-      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE', credentials: 'include' });
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const tokenMatch = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
+      const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE', credentials: 'include', headers });
       if (res.ok) {
         await fetchKeys();
         setOpenMenu(null);
