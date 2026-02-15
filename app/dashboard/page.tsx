@@ -3,9 +3,7 @@ import path from "path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyJwt } from "../../lib/auth";
-import dynamic from "next/dynamic";
-
-const BillingClient = dynamic(() => import("./BillingClient"), { ssr: false });
+import BillingWrapper from "./BillingWrapper";
 
 export default function DashboardPage() {
   const cookieStore = cookies();
@@ -63,7 +61,7 @@ export default function DashboardPage() {
         <section className="bg-white p-6 rounded shadow">
           <h3 className="font-medium mb-2">Billing</h3>
           <p className="text-zinc-600 mb-4">Purchase API capacity via Stripe.</p>
-          <BillingClient />
+          <BillingWrapper />
         </section>
       </div>
     </div>
