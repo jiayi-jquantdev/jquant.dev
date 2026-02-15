@@ -107,17 +107,16 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
               return (
                 <li key={keyId} className="p-3 border rounded flex justify-between items-center">
                   <div>
-                    <div className="font-mono text-sm text-background">{keyId}</div>
-                    <div className="text-xs text-background">{(k as any).name || (k as any).tier} • created</div>
+                    <div className="font-medium text-background">{(k as any).name || 'API key'}</div>
+                    <div className="text-xs text-background">{(k as any).tier || ''} • created</div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right text-xs text-background">{k.limit || 0} calls/min</div>
                     <div className="relative">
                       <button onClick={() => toggleMenu(keyId)} className="px-2 py-1 border rounded">⋯</button>
                       {openMenu === keyId && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white border shadow p-2">
+                        <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2">
                           <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
-                          <button onClick={() => handleUpgrade(keyId)} className="w-full text-left px-2 py-1">Upgrade key</button>
                         </div>
                       )}
                     </div>
