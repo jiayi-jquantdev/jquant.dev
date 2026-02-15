@@ -12,12 +12,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Always use the chosen light theme colors (no automatic dark mode) */
 
 body {
   background: var(--background);
@@ -26,11 +21,27 @@ body {
 }
 
 .sidebar {
-  background: #fafafa;
-  border-right: 1px solid #e6e6e6;
+  background: var(--foreground);
+  color: var(--background);
+  border-right: 1px solid #3a3a3a;
 }
 
 .card {
-  background: #fff;
+  background: var(--background);
   border: 1px solid #eaeaea;
 }
+
+/* Panels use the dark foreground as a filled background with light text */
+.panel {
+  background: var(--foreground);
+  color: var(--background);
+  border: 1px solid #2b2b2b;
+}
+
+/* Utility classes to mirror simple Tailwind-like tokens used in templates */
+.bg-foreground { background: var(--foreground) !important; }
+.text-background { color: var(--background) !important; }
+.border-foreground { border-color: #2b2b2b !important; }
+.btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.btn-primary { background: var(--foreground); color: var(--background); padding: .5rem 1rem; border-radius: .375rem; border: none; }
+.footer { background: var(--foreground); color: var(--background); }

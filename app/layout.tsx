@@ -30,9 +30,7 @@ export default function RootLayout({
             <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
               <a href="/" className="text-lg font-bold text-foreground">jquant.dev</a>
               <nav className="flex gap-4 items-center">
-                <a href="/" className="text-sm text-foreground">Home</a>
                 <a href="/docs" className="text-sm text-foreground">Docs</a>
-                <a href="/dashboard" className="text-sm text-foreground">Dashboard</a>
                 <a href="/login" className="text-sm text-foreground">Log in</a>
                 <a href="/signup" className="text-sm text-foreground">Sign up</a>
               </nav>
@@ -41,8 +39,8 @@ export default function RootLayout({
 
           <main className="flex-1">{children}</main>
 
-          <footer className="w-full border-t">
-            <div className="max-w-6xl mx-auto p-4 text-sm text-zinc-600">© {new Date().getFullYear()} jquant.dev</div>
+          <footer className="w-full footer">
+            <div className="max-w-6xl mx-auto p-4 text-sm">© {new Date().getFullYear()} jquant.dev</div>
           </footer>
         </div>
       </body>

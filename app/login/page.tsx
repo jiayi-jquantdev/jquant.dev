@@ -34,7 +34,7 @@ export default function LoginPage() {
           <input type="password" className="w-full border p-2 rounded" value={password} onChange={e=>setPassword(e.target.value)} />
         </label>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-foreground text-background rounded">Sign in</button>
+          <button type="submit" className="btn btn-primary">Sign in</button>
         </div>
       </form>
     </div>

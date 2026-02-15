@@ -15,23 +15,23 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="hidden md:block w-96 h-64 bg-gradient-to-br from-zinc-100 to-white rounded-lg shadow-md"></div>
+            {/* image removed per design */}
           </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card p-6 rounded">
+            <div className="panel p-6 rounded">
               <h3 className="font-semibold mb-2">API Keys</h3>
-              <p className="text-sm text-zinc-600">Create and manage keys for programmatic access.</p>
+              <p className="text-sm">Create and manage keys for programmatic access.</p>
             </div>
-            <div className="card p-6 rounded">
+            <div className="panel p-6 rounded">
               <h3 className="font-semibold mb-2">Predictive Models</h3>
-              <p className="text-sm text-zinc-600">Ensemble ML models tuned for short/medium horizons.</p>
+              <p className="text-sm">Ensemble ML models tuned for short/medium horizons.</p>
             </div>
-            <div className="card p-6 rounded">
+            <div className="panel p-6 rounded">
               <h3 className="font-semibold mb-2">Billing</h3>
-              <p className="text-sm text-zinc-600">Simple flat pricing with Stripe-powered checkout.</p>
+              <p className="text-sm">Simple flat pricing with Stripe-powered checkout.</p>
             </div>
           </div>
         </section>

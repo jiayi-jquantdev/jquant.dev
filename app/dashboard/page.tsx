@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           </div>
         </header>
 
-        <section className="bg-white p-6 rounded shadow mb-6">
+        <section className="panel p-6 rounded shadow mb-6">
           <h3 className="font-medium mb-2">API Keys</h3>
           {userKeys.length === 0 ? (
             <p className="text-zinc-600">You have no API keys yet. Create one in the keys section.</p>
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section className="bg-white p-6 rounded shadow">
+        <section className="panel p-6 rounded shadow">
           <h3 className="font-medium mb-2">Billing</h3>
           <p className="text-zinc-600 mb-4">Purchase API capacity via Stripe.</p>
           <BillingWrapper />
