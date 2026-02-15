@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifyJwt } from "../../../lib/auth";
+import { verifyJwt } from "../../lib/auth";
 import dynamic from "next/dynamic";
 
 const BillingClient = dynamic(() => import("./BillingClient"), { ssr: false });
