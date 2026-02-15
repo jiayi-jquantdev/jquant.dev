@@ -10,32 +10,38 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
   const id = String((await context.params).id);
   // try to extract JWT from cookie or Authorization header
   const cookieHeader = req.headers.get('cookie') || '';
-  let token: string | null = null;
-  const m = cookieHeader.match(/(?:^|; )token=([^;]+)/);
-  if (m) token = m[1];
-  if (!token) {
-    const auth = req.headers.get('authorization') || '';
-    if (auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
-  }
-  let payload = token ? verifyJwt(token) : null;
+  const cookieMatch = cookieHeader.match(/(?:^|; )token=([^;]+)/);
+  const cookieToken = cookieMatch ? cookieMatch[1] : null;
+  const authHeader = req.headers.get('authorization') || '';
+  const authBearer = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '').trim() : null;
+
   let actingUserId: string | null = null;
-  if (payload && (payload as any).id) {
-    actingUserId = String((payload as any).id);
+
+  // Prefer JWT verification: try cookie token then Authorization bearer as JWT
+  try {
+    if (cookieToken) {
+      const p = verifyJwt(cookieToken);
+      if (p && (p as any).id) actingUserId = String((p as any).id);
+    }
+  } catch (e) {
+    // ignore
+  }
+  if (!actingUserId && authBearer) {
+    try {
+      const p = verifyJwt(authBearer);
+      if (p && (p as any).id) actingUserId = String((p as any).id);
+    } catch (e) {
+      // ignore
+    }
   }
 
-  // If no JWT payload, allow fallback to API key in Authorization header
-  if (!actingUserId) {
-    const authHeader = req.headers.get('authorization') || '';
-    if (authHeader.startsWith('Bearer ')) {
-      const possibleKey = authHeader.replace('Bearer ', '').trim();
-      try {
-        const found = await findUserByApiKey(possibleKey);
-        if (found && found.user && (found.user as any).id) {
-          actingUserId = String((found.user as any).id);
-        }
-      } catch (e) {
-        // ignore and fall through to unauthorized
-      }
+  // If no JWT found, treat Authorization bearer as an API key and resolve user by key
+  if (!actingUserId && authBearer) {
+    try {
+      const found = await findUserByApiKey(authBearer);
+      if (found && found.user && (found.user as any).id) actingUserId = String((found.user as any).id);
+    } catch (e) {
+      // ignore
     }
   }
 
