@@ -31,8 +31,9 @@ export default function RootLayout({
               <a href="/" className="text-lg font-bold text-foreground">jquant.dev</a>
               <nav className="flex gap-4 items-center">
                 <a href="/docs" className="text-sm text-foreground">Docs</a>
-                <a href="/login" className="text-sm text-foreground">Log in</a>
-                <a href="/signup" className="text-sm text-foreground">Sign up</a>
+                <form action="/api/auth/logout" method="post">
+                  <button type="submit" className="text-sm text-foreground">Logout</button>
+                </form>
               </nav>
             </div>
           </header>

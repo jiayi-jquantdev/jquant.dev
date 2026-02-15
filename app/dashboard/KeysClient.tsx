@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
-import { loadStripe } from "@stripe/stripe-js";
+import { useEffect, useState } from "react";
 
-type KeyItem = { id: string; name?: string; tier?: string; limit?: number; ownerId?: string };
+type KeyItem = { id?: string; key?: string; name?: string; tier?: string; limit?: number; ownerId?: string };
 
 export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) {
   const [keys, setKeys] = useState<KeyItem[]>(initialKeys || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => { fetchKeys(); }, []);
 
@@ -42,58 +43,55 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
     setLoading(false);
   }
 
-  const [showPayment, setShowPayment] = useState(false);
-  const [paymentPriceKey, setPaymentPriceKey] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const stripeRef = useRef<any>(null);
-  const elementsRef = useRef<any>(null);
-
-  async function openPayment(priceKeyName: string) {
-    setPaymentPriceKey(priceKeyName);
-    setShowPayment(true);
-    setTimeout(initStripe, 50);
+  function toggleMenu(id: string) {
+    setOpenMenu(openMenu === id ? null : id);
   }
 
-  async function initStripe() {
-    if (!paymentPriceKey) return;
-    if (!cardRef.current) return;
-    if (!stripeRef.current) {
-      stripeRef.current = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-    }
-    if (!elementsRef.current) {
-      const elements = stripeRef.current!.elements();
-      const card = elements.create('card');
-      card.mount(cardRef.current);
-      elementsRef.current = { elements, card };
-    }
-  }
-
-  async function submitPayment() {
-    if (!paymentPriceKey) return setError('No price selected');
+  async function handleDelete(keyId: string) {
     setProcessing(true);
     try {
-      const res = await fetch('/api/stripe/create-payment-intent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceKeyName: paymentPriceKey }) });
-      if (!res.ok) throw new Error('Could not create payment intent');
-      const j = await res.json();
-      const clientSecret = j.clientSecret;
-      const stripe = stripeRef.current;
-      const { error } = await stripe.confirmCardPayment(clientSecret, { payment_method: { card: elementsRef.current.card } });
-      if (error) {
-        setError(error.message || 'Payment failed');
-        setProcessing(false);
-        return;
-      }
-
-      const k = await fetch('/api/keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: 'paid' }) });
-      if (k.ok) {
+      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE' });
+      if (res.ok) {
         await fetchKeys();
-        setShowPayment(false);
+        setOpenMenu(null);
       } else {
-        setError('Payment succeeded but could not create key');
+        setError('Could not delete key');
       }
     } catch (e: any) {
-      setError(e.message || 'Payment error');
+      setError(e.message || 'Network error');
+    }
+    setProcessing(false);
+  }
+
+  async function handleUpgrade(keyId: string) {
+    setProcessing(true); setError(null);
+    try {
+      // redirect to checkout for an upgrade price
+      const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceKeyName: 'TWENTYCALLS_PRICE_ID' }) });
+      const j = await res.json();
+      if (res.ok && j.url) {
+        window.location.href = j.url;
+      } else {
+        setError(j.error || 'Failed to create checkout');
+      }
+    } catch (e: any) {
+      setError(e.message || 'Network error');
+    }
+    setProcessing(false);
+  }
+
+  async function purchasePrice(priceKeyName: string) {
+    setProcessing(true); setError(null);
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceKeyName }) });
+      const j = await res.json();
+      if (res.ok && j.url) {
+        window.location.href = j.url;
+      } else {
+        setError(j.error || 'Failed to create checkout');
+      }
+    } catch (e: any) {
+      setError(e.message || 'Network error');
     }
     setProcessing(false);
   }
@@ -104,40 +102,42 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
         <div>
           {keys.length === 0 && <div className="text-sm text-background">No keys found.</div>}
           <ul className="mt-4 space-y-2">
-            {keys.map(k => (
-              <li key={k.id} className="p-3 border rounded flex justify-between">
-                <div>
-                  <div className="font-mono text-sm text-background">{k.id}</div>
-                  <div className="text-xs text-background">{k.name || k.tier} • created</div>
-                </div>
-                <div className="text-right text-xs text-background">{k.limit || 0} calls/min</div>
-              </li>
-            ))}
+            {keys.map(k => {
+              const keyId = (k as any).id || (k as any).key;
+              return (
+                <li key={keyId} className="p-3 border rounded flex justify-between items-center">
+                  <div>
+                    <div className="font-mono text-sm text-background">{keyId}</div>
+                    <div className="text-xs text-background">{(k as any).name || (k as any).tier} • created</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right text-xs text-background">{k.limit || 0} calls/min</div>
+                    <div className="relative">
+                      <button onClick={() => toggleMenu(keyId)} className="px-2 py-1 border rounded">⋯</button>
+                      {openMenu === keyId && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white border shadow p-2">
+                          <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
+                          <button onClick={() => handleUpgrade(keyId)} className="w-full text-left px-2 py-1">Upgrade key</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="mt-6 flex gap-2">
             <button onClick={createKey} className="btn btn-primary">Create paid key</button>
-            <button onClick={() => openPayment('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls</button>
-            <button onClick={() => openPayment('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls</button>
-            <button onClick={() => openPayment('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls</button>
+            <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls</button>
+            <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls</button>
+            <button onClick={() => purchasePrice('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls</button>
           </div>
           {error && <div className="text-sm text-red-600 mt-3">{error}</div>}
         </div>
       )}
 
-      {showPayment && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-          <div className="panel p-6 rounded shadow max-w-md w-full">
-            <h3 className="font-medium mb-3 text-background">Enter card details</h3>
-            <div ref={cardRef} className="mb-4" />
-            <div className="flex gap-2">
-              <button onClick={submitPayment} className="btn btn-primary" disabled={processing}>{processing ? 'Processing...' : 'Pay'}</button>
-              <button onClick={() => setShowPayment(false)} className="px-4 py-2 border rounded">Cancel</button>
-            </div>
-            {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }

@@ -3,8 +3,8 @@ import path from "path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyJwt } from "../../lib/auth";
-import BillingWrapper from "./BillingWrapper";
 import KeysClient from "./KeysClient";
+import PaymentMethodsClient from "./PaymentMethodsClient";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -45,9 +45,8 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel p-6 rounded shadow">
-          <h3 className="font-medium mb-2">Billing</h3>
-          <p className="text-background mb-4">Purchase API capacity via Stripe.</p>
-          <BillingWrapper />
+          <h3 className="font-medium mb-2">Payment methods</h3>
+          <PaymentMethodsClient />
         </section>
       </div>
     </div>
