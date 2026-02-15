@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyJwt } from "../lib/auth";
+import HomeNoScrollClient from "./components/HomeNoScrollClient";
 
 export default async function Home() {
   const cookieStore = await cookies();
@@ -10,9 +11,10 @@ export default async function Home() {
   if (payload) redirect('/dashboard');
 
   return (
-    <div style={{ height: `calc(100vh - var(--header-height))`, overflow: 'hidden' }} className="w-full flex items-center justify-center">
+    <div className="w-full">
+      <HomeNoScrollClient />
       <main className="w-full">
-        <section className="h-full flex items-center justify-center">
+        <section style={{ position: 'fixed', top: 'var(--header-height)', left: 0, right: 0, bottom: 0 }} className="flex items-center justify-center">
           <div className="max-w-4xl mx-auto px-6 py-16 text-center">
             <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight text-panel">jquant.dev</h1>
             <ul className="list-disc list-inside text-lg md:text-xl text-panel mb-8 space-y-3 leading-relaxed">
