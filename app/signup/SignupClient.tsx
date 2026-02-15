@@ -22,8 +22,8 @@ export default function SignupClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8" style={{ transform: 'translateY(-1rem)' }}>
-      <form onSubmit={submit} className="w-full max-w-md panel p-8 rounded shadow">
+    <div className="min-h-screen flex items-center justify-center p-8">
+      <form onSubmit={submit} className="w-full max-w-lg panel p-8 rounded shadow">
         <h2 className="text-xl font-medium mb-4">Create account</h2>
         {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
         <label className="block mb-2">

@@ -26,7 +26,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center w-full">
+      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center w-full centered-up">
         <div className="mb-6" />
 
         <section className="panel p-6 rounded shadow mb-6 w-full">
