@@ -9,6 +9,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   const [error, setError] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [revealKey, setRevealKey] = useState<string | null>(null);
 
   useEffect(() => { fetchKeys(); }, []);
 
@@ -55,7 +56,8 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
         await fetchKeys();
         setOpenMenu(null);
       } else {
-        setError('Could not delete key');
+        const j = await res.json().catch(()=>({}));
+        setError(j.error || 'Could not delete key');
       }
     } catch (e: any) {
       setError(e.message || 'Network error');
@@ -117,6 +119,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
                       {openMenu === keyId && (
                         <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2">
                           <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
+                          {(k as any).tier === 'free' && <button onClick={() => { setRevealKey((k as any).key || (k as any).id); setOpenMenu(null); }} className="w-full text-left px-2 py-1">View key</button>}
                         </div>
                       )}
                     </div>
@@ -125,6 +128,19 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
               );
             })}
           </ul>
+
+          {/* Reveal modal for free key */}
+          {revealKey && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+              <div className="panel p-6 rounded shadow max-w-md w-full">
+                <h3 className="font-medium mb-3 text-background">API Key</h3>
+                <pre className="bg-white p-3 rounded break-all">{revealKey}</pre>
+                <div className="mt-4 flex justify-end">
+                  <button onClick={() => setRevealKey(null)} className="px-4 py-2 border rounded">Close</button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 flex gap-2">
             <button onClick={createKey} className="btn btn-primary">Create paid key</button>

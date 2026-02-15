@@ -8,12 +8,12 @@ export default function PaymentMethodsClient() {
   async function addPaymentMethod() {
     setLoading(true); setError(null);
     try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'setup' }) });
+      const res = await fetch('/api/stripe/portal', { method: 'POST' });
       const j = await res.json();
       if (res.ok && j.url) {
         window.location.href = j.url;
       } else {
-        setError(j.error || 'Could not start setup');
+        setError(j.error || 'Could not open customer portal');
       }
     } catch (e: any) {
       setError(e.message || 'Network error');

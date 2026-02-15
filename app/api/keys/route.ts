@@ -27,14 +27,18 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const tier = body?.tier || "paid";
+  const name = body?.name || (tier === 'free' ? 'Free key' : 'Paid key');
 
   const user = await findUserById(payload.id);
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
+  const generated = randomUUID();
   const newKey = {
-    key: randomUUID(),
+    id: generated,
+    key: generated,
+    name,
     tier,
-    callsRemainingPerMinute: tier === 'free' ? 5 : 60,
+    limit: tier === 'free' ? 5 : 60,
     createdAt: new Date().toISOString(),
   };
   await addApiKeyForUser(user.id, newKey);
