@@ -143,11 +143,11 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
           )}
 
           <div className="mt-6">
-            <div className="h-16 flex items-center text-sm font-medium">Create paid key</div>
+            <div className="h-16 flex items-center font-medium mb-2">Create paid key</div>
             <div className="flex gap-2">
-              <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls</button>
-              <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls</button>
-              <button onClick={() => purchasePrice('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls</button>
+              <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls per minute</button>
+              <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls per minute</button>
+              <button onClick={() => purchasePrice('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls per minute</button>
             </div>
           </div>
           {error && <div className="text-sm text-red-600 mt-3">{error}</div>}
