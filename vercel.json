@@ -1,7 +1,7 @@
 {
   "build": {
     "env": {
-      "alphavantage_api_key": "@alphavantage_api_key"
+      "alphavantage_api_key": "@ALPHAVANTAGE_API_KEY"
     }
   },
   "functions": {
