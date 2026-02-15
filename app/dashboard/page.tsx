@@ -1,8 +1,7 @@
-import fs from "fs";
-import path from "path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyJwt } from "../../lib/auth";
+import { listKeysForUser } from "../../lib/db";
 import KeysClient from "./KeysClient";
 import PaymentMethodsClient from "./PaymentMethodsClient";
 
@@ -12,17 +11,8 @@ export default async function DashboardPage() {
   const payload = token ? verifyJwt(token) : null;
   if (!payload) redirect('/login');
 
-  // load keys (simple file storage)
-  const keysPath = path.join(process.cwd(), 'data', 'keys.json');
-  let keys: unknown[] = [];
-  try {
-    const raw = fs.readFileSync(keysPath, 'utf-8');
-    keys = JSON.parse(raw || '[]');
-  } catch (e) {
-    keys = [];
-  }
-
-  const userKeys = keys.filter((k: any) => k.ownerId === String(payload.id));
+  const userId = String(payload.id);
+  const userKeys = await listKeysForUser(userId);
 
   return (
     <div className="min-h-screen p-8">
