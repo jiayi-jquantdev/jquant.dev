@@ -157,14 +157,18 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
             </div>
           )}
 
-          <div className="mt-6 flex items-center justify-between">
-            <div className="font-medium text-background">Create paid key</div>
-            <div className="flex gap-2">
-              <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls per minute</button>
-              <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls per minute</button>
-              <button onClick={() => purchasePrice('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls per minute</button>
+          {/* Only show paid-key purchase options when the user does NOT already have a paid key */}
+          {!(keys || []).some(k => (k as any).tier === 'paid') && (
+            <div className="mt-6 flex items-center justify-between">
+              <div className="font-medium text-background">Create paid key</div>
+              <div className="flex gap-2">
+                <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls per minute</button>
+                <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls per minute</button>
+                <button onClick={() => purchasePrice('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls per minute</button>
+                <button onClick={() => purchasePrice('SIXHUNDREDCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 600 calls per minute</button>
+              </div>
             </div>
-          </div>
+          )}
           {error && <div className="text-sm text-red-600 mt-3">{error}</div>}
         </div>
       )}

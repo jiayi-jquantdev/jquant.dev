@@ -32,6 +32,14 @@ export async function POST(req: NextRequest) {
   const user = await findUserById(payload.id);
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
+  // Prevent more than one paid key per account
+  if (tier === 'paid') {
+    const existing = await listKeysForUser(user.id);
+    if ((existing || []).some(k => (k as any).tier === 'paid')) {
+      return new Response(JSON.stringify({ error: 'Account already has a paid key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+  }
+
   const generated = randomUUID();
   const newKey = {
     id: generated,
