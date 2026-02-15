@@ -1,0 +1,13 @@
+{
+  "build": {
+    "env": {
+      "ALPHA_VANTAGE_API_KEY": "@alpha_vantage_api_key"
+    }
+  },
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "python3.11"
+    }
+  },
+  "routes": []
+}

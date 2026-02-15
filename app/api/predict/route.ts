@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
 import { findUserByApiKey } from "../../../lib/db";
 import { checkAndIncrementKey } from "../../../lib/rate-limit";
+import { predictTicker } from "../../../lib/ml-predict";
+import { readJson, writeJson } from "../../../lib/fs-utils";
+import fs from 'fs';
+import path from 'path';
 
 // tier limits (minute and day window)
 const TIERS: Record<string, { minute: number; day: number }> = {
@@ -63,7 +67,50 @@ export async function POST(req: NextRequest) {
 
   // For now return a dummy prediction structure; real model calls go here.
   const body = await req.json();
-  const symbol = body?.symbol || 'UNKNOWN';
+  const ticker = (body?.ticker || body?.symbol || '') as string;
+  if (!ticker || typeof ticker !== 'string') return new Response(JSON.stringify({ error: 'Missing ticker' }), { status: 400 });
 
-  return new Response(JSON.stringify({ symbol, predictions: { '1m': 0.02, '3m': 0.05, '6m': 0.12 } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  // Pre-flight checks for local Python prediction
+  const mlUrl = process.env.ML_SERVICE_URL;
+  const mlLocal = process.env.ML_SERVICE_LOCAL === 'true';
+  if (!mlUrl && mlLocal) {
+    const modelPath = path.join(process.cwd(), 'ml', 'models', 'stock_predictor.pkl');
+    if (!fs.existsSync(modelPath)) {
+      return new Response(JSON.stringify({ error: 'Model not trained', details: 'Run ml/train_model.py to create the model first' }), { status: 400 });
+    }
+    if (!process.env.ALPHA_VANTAGE_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Server misconfiguration', details: 'ALPHA_VANTAGE_API_KEY not set on server' }), { status: 500 });
+    }
+  }
+
+  try {
+    const pred = await predictTicker(ticker.toUpperCase());
+
+    // record usage in data/usage.json (increment total calls for this key)
+    try {
+      const usages = (await readJson<Record<string, any>>('usage.json').catch(() => ({}))) || {};
+      const cur = usages[apiKey] || { calls: 0 };
+      cur.calls = (cur.calls || 0) + 1;
+      usages[apiKey] = cur;
+      await writeJson('usage.json', usages);
+    } catch (e) {
+      console.log('Failed to record usage.json', e);
+    }
+
+    const out = { ...pred, timestamp: new Date().toISOString() } as unknown as Record<string, unknown>;
+    return new Response(JSON.stringify(out), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  } catch (e: any) {
+    console.log('Prediction error', e?.message || e);
+    const msg = String(e?.message || e || 'Unknown error');
+    if (msg.toLowerCase().includes('no overview') || msg.toLowerCase().includes('invalid ticker') || msg.toLowerCase().includes('not found')) {
+      return new Response(JSON.stringify({ error: 'Invalid ticker or data not found', details: msg }), { status: 400 });
+    }
+    if (msg.toLowerCase().includes('timed out')) {
+      return new Response(JSON.stringify({ error: 'Prediction timeout', details: msg }), { status: 504 });
+    }
+    if (msg.toLowerCase().includes('model not trained') || msg.toLowerCase().includes('model not found')) {
+      return new Response(JSON.stringify({ error: 'Model unavailable', details: msg }), { status: 400 });
+    }
+    return new Response(JSON.stringify({ error: 'Prediction failed', details: msg }), { status: 500 });
+  }
 }
