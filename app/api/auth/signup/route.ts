@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { hashPassword, createJwt } from "../../../../lib/auth";
-import { readJson, writeJson } from "../../../../lib/fs-utils";
+import { createUser } from "../../../../lib/db";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -10,30 +10,15 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400 });
   }
 
-  const users = await readJson<any[]>("users.json");
-  if (users.find((u) => u.email === email)) {
-    return new Response(JSON.stringify({ error: "Email exists" }), { status: 400 });
-  }
+  const existing = await (await import('../../../../lib/db')).findUserByEmail(email);
+  if (existing) return new Response(JSON.stringify({ error: 'Email exists' }), { status: 400 });
 
   const hashed = await hashPassword(password);
-  const id = randomUUID();
-  const freeKey = randomUUID();
-  const user = {
-    id,
-    email,
-    password: hashed,
-    createdAt: new Date().toISOString(),
-    keys: [
-      {
-        key: freeKey,
-        tier: "free",
-        callsRemainingPerMinute: 1,
-        createdAt: new Date().toISOString(),
-      },
-    ],
-  };
-  users.push(user);
-  await writeJson("users.json", users);
+  const user = await createUser(email, hashed);
+  // create initial free key
+  const freeKey = (globalThis as any).crypto?.randomUUID ? (globalThis as any).crypto.randomUUID() : String(Date.now());
+  const keyObj = { key: freeKey, tier: 'free', callsRemainingPerMinute: 5, createdAt: new Date().toISOString() };
+  await (await import('../../../../lib/db')).addApiKeyForUser(user.id, keyObj);
 
   const token = createJwt({ id: user.id, email: user.email });
   const cookie = `token=${token}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax`;

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { readJson } from "../../../lib/fs-utils";
+import { findUserByApiKey } from "../../../lib/db";
 import { checkAndIncrementKey } from "../../../lib/rate-limit";
 
 // tier limits
@@ -15,23 +15,18 @@ export async function POST(req: NextRequest) {
   if (!apiKey) return new Response(JSON.stringify({ error: 'Missing api key' }), { status: 401 });
 
   // find user/key
-  const users = await readJson<any[]>('users.json');
-  let foundKey: any = null;
+  const found = await findUserByApiKey(apiKey);
+  if (!found) return new Response(JSON.stringify({ error: 'Invalid API key' }), { status: 401 });
+  const k = found.key as any;
   let tierKeyName = 'free';
-  for (const u of users) {
-    if (!u.keys) continue;
-    const k = u.keys.find((kk: any) => kk.key === apiKey);
-    if (k) {
-      foundKey = k;
-      // map tier
-      if (k.tier === 'free') tierKeyName = 'free';
-      else if (k.tier === 'paid') tierKeyName = 'paid_20'; // default paid mapping
-      else tierKeyName = k.tier;
-      break;
-    }
+  if (k.tier === 'free') tierKeyName = 'free';
+  else {
+    const priceKey = k.priceKeyName || (k.metadata && k.metadata.priceKeyName) || '';
+    if (priceKey && priceKey.includes('TWENTY')) tierKeyName = 'paid_20';
+    else if (priceKey && priceKey.includes('FIFTY')) tierKeyName = 'paid_50';
+    else if (priceKey && priceKey.includes('HUNDREDFIFTY')) tierKeyName = 'paid_216';
+    else tierKeyName = 'paid_20';
   }
-
-  if (!foundKey) return new Response(JSON.stringify({ error: 'Invalid API key' }), { status: 401 });
 
   const limits = TIERS[tierKeyName] || TIERS['free'];
   const rl = await checkAndIncrementKey(apiKey, limits.minute, limits.day);

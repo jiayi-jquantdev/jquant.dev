@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { verifyJwt } from "../../../lib/auth";
-import { readJson, writeJson } from "../../../lib/fs-utils";
+import { listKeysForUser, addApiKeyForUser, findUserById } from "../../../lib/db";
 import { randomUUID } from "crypto";
 
 export async function GET(req: NextRequest) {
@@ -10,11 +10,11 @@ export async function GET(req: NextRequest) {
   const payload: any = token ? verifyJwt(token) : null;
   if (!payload) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
-  const users = await readJson<any[]>("users.json");
-  const user = users.find(u => u.id === payload.id);
+  const user = await findUserById(payload.id);
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
-  return new Response(JSON.stringify({ keys: user.keys || [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  const keys = await listKeysForUser(user.id);
+  return new Response(JSON.stringify({ keys: keys || [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
 
 export async function POST(req: NextRequest) {
@@ -28,19 +28,16 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const tier = body?.tier || "paid";
 
-  const users = await readJson<any[]>("users.json");
-  const user = users.find(u => u.id === payload.id);
+  const user = await findUserById(payload.id);
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   const newKey = {
     key: randomUUID(),
     tier,
-    callsRemainingPerMinute: tier === 'free' ? 1 : 60,
+    callsRemainingPerMinute: tier === 'free' ? 5 : 60,
     createdAt: new Date().toISOString(),
   };
-  user.keys = user.keys || [];
-  user.keys.push(newKey);
-  await writeJson('users.json', users);
+  await addApiKeyForUser(user.id, newKey);
 
   return new Response(JSON.stringify({ key: newKey }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }

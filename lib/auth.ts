@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 
@@ -13,12 +13,12 @@ export async function comparePassword(password: string, hash: string) {
 }
 
 export function createJwt(payload: any, expiresIn = "7d") {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  return jwt.sign(payload, JWT_SECRET as jwt.Secret, { expiresIn } as jwt.SignOptions);
 }
 
 export function verifyJwt(token: string) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, JWT_SECRET as jwt.Secret) as any;
   } catch (e) {
     return null;
   }

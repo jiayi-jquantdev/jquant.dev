@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { readJson } from "../../../../lib/fs-utils";
 import { comparePassword, createJwt } from "../../../../lib/auth";
+import { findUserByEmail } from "../../../../lib/db";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -9,8 +9,7 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400 });
   }
 
-  const users = await readJson<any[]>("users.json");
-  const user = users.find((u) => u.email === email);
+  const user = await findUserByEmail(email);
   if (!user) return new Response(JSON.stringify({ error: "Invalid" }), { status: 401 });
 
   const ok = await comparePassword(password, user.password);

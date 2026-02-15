@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { randomUUID } from "crypto";
-import { readJson, writeJson } from "../../../../lib/fs-utils";
+import { addApiKeyForUser, findUserById, recordPayment } from "../../../../lib/db";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-11-15" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2022-11-15" });
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature') || '';
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
     const priceKeyName = metadata.priceKeyName || '';
 
     if (userId) {
-      // create a paid key for the user
       // verify amount matches price if possible
+      let callsPerMin = 60;
       if (priceKeyName && process.env[priceKeyName]) {
         try {
           const price = await stripe.prices.retrieve(process.env[priceKeyName] as string);
@@ -39,18 +39,22 @@ export async function POST(req: NextRequest) {
             // amount mismatch, do not grant key
             return new Response(JSON.stringify({ received: false, reason: 'amount_mismatch' }), { status: 400 });
           }
+          // map priceKeyName to calls per minute
+          if (priceKeyName.includes('TWENTY')) callsPerMin = 20;
+          else if (priceKeyName.includes('FIFTY')) callsPerMin = 50;
+          else if (priceKeyName.includes('HUNDREDFIFTY')) callsPerMin = 216;
         } catch (e) {
           // if price lookup fails, continue but log
         }
       }
 
-      const users = await readJson<any[]>('users.json');
-      const user = users.find(u => u.id === userId);
+      // record payment
+      await recordPayment(userId || null, priceKeyName || null, (pi.amount || 0), pi.id || '');
+
+      const user = await findUserById(userId);
       if (user) {
-        const newKey = { key: randomUUID(), tier: 'paid', callsRemainingPerMinute: 60, createdAt: new Date().toISOString(), priceKeyName };
-        user.keys = user.keys || [];
-        user.keys.push(newKey);
-        await writeJson('users.json', users);
+        const newKey = { key: randomUUID(), tier: 'paid', callsRemainingPerMinute: callsPerMin, createdAt: new Date().toISOString(), priceKeyName };
+        await addApiKeyForUser(userId, newKey);
       }
     }
   }

@@ -15,8 +15,9 @@ function todayDateString() {
 }
 
 function makeUpstashClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // support multiple possible env var names provisioned by Vercel/Upstash
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL || process.env.KV_REST_API_URL || process.env.KV_URL || null;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN || null;
   if (!url || !token) return null;
   return new Redis({ url, token });
 }

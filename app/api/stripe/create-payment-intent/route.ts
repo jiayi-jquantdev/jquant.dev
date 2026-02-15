@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { verifyJwt } from "../../../../lib/auth";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-11-15" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2022-11-15" });
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
