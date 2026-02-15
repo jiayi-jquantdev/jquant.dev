@@ -59,7 +59,7 @@ button, a, input, select, textarea { cursor: pointer; }
 
 /* Button hover styles: transform outline buttons to white background with dark text */
 button, .btn, input[type="button"], input[type="submit"] {
-  transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .08s ease;
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .12s ease;
 }
 
 /* Outline buttons (common pattern: have border but no bg) */

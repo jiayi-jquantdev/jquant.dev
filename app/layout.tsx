@@ -11,7 +11,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body>
-        <div className="h-screen flex flex-col bg-background text-foreground">
+        <div className="flex flex-col bg-background text-foreground">
           <header className="w-full h-16 bg-foreground text-background sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
               <div className="flex items-center gap-6">
@@ -46,10 +46,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
 
               <div className="flex items-center gap-4">
-                <a href="mailto:jiayi@jquant.dev" className="underline">jiayi@jquant.dev</a>
-                <Link href="/terms" className="underline">Terms</Link>
-                <Link href="/privacy" className="underline">Privacy</Link>
-                <Link href="/legal" className="underline">Legal</Link>
+                <a href="mailto:jiayi@jquant.dev" target="_blank" rel="noopener noreferrer" className="underline">jiayi@jquant.dev</a>
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms</Link>
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline">Privacy</Link>
+                <Link href="/legal" target="_blank" rel="noopener noreferrer" className="underline">Legal</Link>
               </div>
             </div>
           </footer>
