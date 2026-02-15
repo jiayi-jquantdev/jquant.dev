@@ -8,8 +8,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '20
 
 export async function DELETE(req: NextRequest, context: any) {
   const id = context?.params?.id;
-  const cookieStore = await cookies();
-  const token = cookieStore.get('token')?.value || null;
+  const cookie = req.headers.get('cookie') || '';
+  const tokenMatch = cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
+  const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
   const payload: any = token ? verifyJwt(token) : null;
   if (!payload) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
 

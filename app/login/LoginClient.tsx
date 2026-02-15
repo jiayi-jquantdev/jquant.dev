@@ -13,6 +13,7 @@ export default function LoginClient() {
     setError(null);
     const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
     if (res.ok) {
+      try { const bc = new BroadcastChannel('auth'); bc.postMessage('login'); bc.close(); } catch {}
       router.push('/dashboard');
     } else {
       const j = await res.json();

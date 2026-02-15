@@ -100,7 +100,22 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
 
   return (
     <div>
-      {loading ? <div>Loading...</div> : (
+      {loading ? (
+        <div className="space-y-2">
+          <div className="p-3 border rounded animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+          </div>
+          <div className="p-3 border rounded animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+          </div>
+          <div className="p-3 border rounded animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+          </div>
+        </div>
+      ) : (
         <div>
           {keys.length === 0 && <div className="text-sm text-background">No keys found.</div>}
           <ul className="mt-4 space-y-2">
@@ -143,7 +158,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
           )}
 
           <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm font-medium">Create paid key</div>
+            <div className="font-medium text-background">Create paid key</div>
             <div className="flex gap-2">
               <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls per minute</button>
               <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls per minute</button>

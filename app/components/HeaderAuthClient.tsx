@@ -25,7 +25,9 @@ export default function HeaderAuthClient({ initialUser }: { initialUser?: any })
       if (mounted) setLoading(false);
     }
     check();
-    return () => { mounted = false; };
+    const bc = typeof window !== 'undefined' ? new BroadcastChannel('auth') : null;
+    if (bc) bc.onmessage = () => { if (mounted) check(); };
+    return () => { mounted = false; if (bc) bc.close(); };
   }, []);
 
   async function logout() {

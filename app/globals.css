@@ -26,10 +26,12 @@ body {
 .sidebar {
   background: #ffffff;
   color: var(--foreground);
-  border-right: 1px solid #eee;
+  border: 1px solid #e6e6e6;
   position: sticky;
   top: var(--header-height);
   height: calc(100vh - var(--header-height));
+  border-radius: 6px;
+  padding: 1rem;
 }
 
 .card {
@@ -50,10 +52,33 @@ body {
 .border-foreground { border-color: #2b2b2b !important; }
 .btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-primary { background: var(--foreground); color: var(--background); padding: .5rem 1rem; border-radius: .375rem; border: none; }
-.footer { background: var(--foreground); color: var(--background); position: fixed; bottom: 0; left: 0; }
+.footer { background: var(--foreground); color: var(--background); }
 
 /* Ensure interactive elements show pointer */
 button, a, input, select, textarea { cursor: pointer; }
+
+/* Button hover styles: transform outline buttons to white background with dark text */
+button, .btn, input[type="button"], input[type="submit"] {
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .08s ease;
+}
+
+/* Outline buttons (common pattern: have border but no bg) */
+button.border:hover, .btn.border:hover, button[role="button"]:hover, a.btn:hover {
+  background: #ffffff;
+  color: var(--foreground) !important;
+  border-color: var(--foreground) !important;
+}
+
+/* Ensure small icon buttons like the three-dot menu get visible hover */
+button.px-2:hover, button.px-2.py-1:hover {
+  background: #ffffff;
+  color: var(--foreground);
+}
+
+/* Primary buttons invert subtly on hover */
+.btn-primary:hover {
+  opacity: 0.95;
+}
 
 /* Make main content horizontally scroll within limits */
 .max-w-7xl { max-width: 80rem; }

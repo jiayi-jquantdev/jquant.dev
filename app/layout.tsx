@@ -16,12 +16,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <Link href="/" className="font-semibold text-xl">jquant.dev</Link>
-                <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-                  <Link href="/docs">Docs</Link>
-                </nav>
               </div>
 
-              <HeaderAuthClient initialUser={payload} />
+              <div className="flex items-center gap-4">
+                <Link href="/docs" className="hidden md:inline text-sm font-medium">Docs</Link>
+                <HeaderAuthClient initialUser={payload} />
+              </div>
             </div>
           </header>
 
