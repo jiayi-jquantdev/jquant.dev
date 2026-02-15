@@ -15,9 +15,9 @@ from datetime import datetime
 
 load_dotenv()
 
-API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
+API_KEY = os.getenv('alphavantage_api_key')
 if not API_KEY:
-    print('ALPHA_VANTAGE_API_KEY not set')
+    print('alphavantage_api_key not set')
     raise SystemExit(1)
 
 ROOT = Path(__file__).resolve().parent

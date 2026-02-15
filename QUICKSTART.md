@@ -27,7 +27,7 @@ pip install -r ml/requirements.txt
 - Create a `.env` file in the project root with this content:
 
 ```
-ALPHA_VANTAGE_API_KEY=your_key_here
+alphavantage_api_key=your_key_here
 ML_SERVICE_LOCAL=true
 ```
 
@@ -74,7 +74,7 @@ curl -X POST http://localhost:3000/api/predict \
 You should get a response like the sample in `ml/README.md`.
 
 Common errors and fixes
-- "ALPHA_VANTAGE_API_KEY not set": ensure `.env` exists and you restarted your shell or the Next.js server (server reads process env at start).
+- "alphavantage_api_key not set": ensure `.env` exists and you restarted your shell or the Next.js server (server reads process env at start).
 - "Model not trained": run `python ml/train_model.py` to generate the model, or ensure you're using `ML_SERVICE_URL` if relying on a hosted model.
 - Prediction timeouts: increase the `ML_SERVICE_LOCAL` timeout in `lib/ml-predict.ts` or ensure your machine has network access to Alpha Vantage.
 

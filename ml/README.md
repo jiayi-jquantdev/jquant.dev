@@ -11,7 +11,7 @@ pip install -r ml/requirements.txt
 ```
 
 Environment
-- Set `ALPHA_VANTAGE_API_KEY` (required) — create `.env` or export in your shell.
+- Set `alphavantage_api_key` (required) — create `.env` or export in your shell.
 
 Files
 - `ml/tickers.txt` — list of tickers (one per line) to collect
@@ -22,7 +22,7 @@ Files
 
 Quick steps
 1. Install dependencies: `pip install -r ml/requirements.txt` (1–3 minutes)
-2. Set API key: `export ALPHA_VANTAGE_API_KEY=your_key_here` (instant)
+2. Set API key: `export alphavantage_api_key=your_key_here` (instant)
 3. Collect fundamentals: `python ml/collect_data.py` (for 100 tickers, ~20+ minutes due to rate limits)
 4. Calculate returns: `python ml/calculate_returns.py` (similar duration)
 5. Train model: `python ml/train_model.py` (couple minutes depending on data)

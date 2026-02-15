@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
     if (!fs.existsSync(modelPath)) {
       return new Response(JSON.stringify({ error: 'Model not trained', details: 'Run ml/train_model.py to create the model first' }), { status: 400 });
     }
-    if (!process.env.ALPHA_VANTAGE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'Server misconfiguration', details: 'ALPHA_VANTAGE_API_KEY not set on server' }), { status: 500 });
+    if (!process.env.alphavantage_api_key) {
+      return new Response(JSON.stringify({ error: 'Server misconfiguration', details: 'alphavantage_api_key not set on server' }), { status: 500 });
     }
   }
 
