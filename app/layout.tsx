@@ -1,47 +1,31 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "jquant.dev",
-  description: "jquant.dev — simple ML stock return predictions via API",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <div className="min-h-screen flex flex-col">
-          <header className="w-full border-b sticky top-0 z-40">
-            <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-              <a href="/" className="text-lg font-bold text-foreground">jquant.dev</a>
-              <nav className="flex gap-4 items-center">
-                <a href="/docs" className="text-sm text-foreground">Docs</a>
-                <form action="/api/auth/logout" method="post">
-                  <button type="submit" className="text-sm text-foreground">Logout</button>
-                </form>
+      <body>
+        <div className="min-h-screen bg-background text-foreground">
+          <header className="w-full bg-foreground text-background sticky top-0 z-40">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <Link href="/" className="font-semibold text-xl">jquant.dev</Link>
+                <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
+                  <Link href="/docs">Docs</Link>
+                </nav>
+              </div>
+
+              <nav className="flex items-center gap-3">
+                <Link href="/login" className="text-sm font-medium">Login</Link>
+                <Link href="/signup" className="text-sm font-medium">Sign up</Link>
               </nav>
             </div>
           </header>
 
-          <main className="flex-1">{children}</main>
+          <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
 
-          <footer className="w-full footer">
-            <div className="max-w-6xl mx-auto p-4 text-sm">© {new Date().getFullYear()} jquant.dev</div>
+          <footer className="w-full mt-24 border-t py-8">
+            <div className="max-w-7xl mx-auto px-4 text-sm text-center">© jquant.dev</div>
           </footer>
         </div>
       </body>

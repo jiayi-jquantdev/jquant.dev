@@ -13,6 +13,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || '';
+    // try to attach user metadata from JWT cookie so subscriptions/payment can be linked
+    const cookie = req.headers.get('cookie') || '';
+    const tokenMatch = cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
+    const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
+    let payload: any = null;
+    try { const { verifyJwt } = await import('../../../../lib/auth'); payload = token ? verifyJwt(token) : null; } catch (e) { payload = null; }
     // If a priceId is provided, detect whether it's recurring (subscription)
     if (priceId) {
       const price = await stripe.prices.retrieve(priceId);
@@ -24,6 +30,8 @@ export async function POST(req: NextRequest) {
         line_items: chosenMode === 'setup' ? undefined : [{ price: priceId, quantity: 1 }],
         success_url: chosenMode === 'setup' ? `${origin}/dashboard?setup=success` : `${origin}/dashboard?checkout=success`,
         cancel_url: chosenMode === 'setup' ? `${origin}/dashboard?setup=cancelled` : `${origin}/dashboard?checkout=cancelled`,
+        metadata: { userId: payload?.id || '' },
+        customer_email: payload?.email || undefined,
       });
       return new Response(JSON.stringify({ url: session.url }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } else {

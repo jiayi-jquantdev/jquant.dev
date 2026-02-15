@@ -23,7 +23,7 @@ export default function PaymentMethodsClient() {
 
   return (
     <div>
-      <p className="text-background mb-3">Manage your payment methods via Stripe.</p>
+      <p className="text-background mb-3">Manage your API subscriptions.</p>
       <div className="flex gap-3">
         <button onClick={addPaymentMethod} disabled={loading} className="btn btn-primary">Add payment method</button>
       </div>

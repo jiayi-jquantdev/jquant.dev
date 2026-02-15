@@ -53,8 +53,44 @@ export async function POST(req: NextRequest) {
 
       const user = await findUserById(userId);
       if (user) {
-        const newKey = { key: randomUUID(), tier: 'paid', callsRemainingPerMinute: callsPerMin, createdAt: new Date().toISOString(), priceKeyName };
+        const id = randomUUID();
+        const newKey = { id, key: id, name: 'Paid key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName };
         await addApiKeyForUser(userId, newKey);
+      }
+    }
+  }
+  // handle checkout session completed (subscriptions)
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const userId = (session.metadata || {})['userId'];
+    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : (session.subscription as any)?.id;
+    const customerEmail = session.customer_details?.email || session.customer_email || '';
+
+    if (subscriptionId) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const priceId = subscription.items.data[0]?.price?.id;
+        let callsPerMin = 60;
+        if (priceId) {
+          if (priceId.includes('TWENTY')) callsPerMin = 20;
+          else if (priceId.includes('FIFTY')) callsPerMin = 50;
+          else if (priceId.includes('HUNDREDFIFTY')) callsPerMin = 216;
+        }
+
+        let user = null;
+        if (userId) user = await findUserById(userId);
+        if (!user && customerEmail) {
+          try { const { findUserByEmail } = await import('../../../../lib/db'); user = await findUserByEmail(customerEmail); } catch (e) { user = null; }
+        }
+
+        if (user) {
+          const id = randomUUID();
+          const newKey = { id, key: id, name: 'Subscription key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName: priceId || null, subscriptionId };
+          await addApiKeyForUser(user.id, newKey);
+          await recordPayment(user.id, priceId || null, (session.amount_total as any) || 0, subscriptionId || '');
+        }
+      } catch (e) {
+        // ignore
       }
     }
   }

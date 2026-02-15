@@ -21,9 +21,9 @@ body {
 }
 
 .sidebar {
-  background: var(--foreground);
-  color: var(--background);
-  border-right: 1px solid #3a3a3a;
+  background: #ffffff;
+  color: var(--foreground);
+  border-right: 1px solid #eee;
 }
 
 .card {

@@ -27,17 +27,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
-        <header className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-semibold">Dashboard</h2>
-            <div className="text-sm text-background">Signed in as {payload?.email || payload?.id}</div>
-          </div>
-          <div className="flex gap-2">
-            <form action="/api/auth/logout" method="post">
-              <button type="submit" className="px-3 py-1 rounded bg-foreground text-background">Log out</button>
-            </form>
-          </div>
-        </header>
+        <div className="mb-6" />
 
         <section className="panel p-6 rounded shadow mb-6">
           <h3 className="font-medium mb-2">API Keys</h3>

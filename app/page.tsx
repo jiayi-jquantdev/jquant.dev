@@ -1,6 +1,14 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verifyJwt } from "../lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get?.('token')?.value || null;
+  const payload: any = token ? verifyJwt(token) : null;
+  if (payload) redirect('/dashboard');
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <main className="w-full">
@@ -15,24 +23,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* image removed per design */}
-          </div>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="panel p-6 rounded">
-              <h3 className="font-semibold mb-2">API Keys</h3>
-              <p className="text-sm">Create and manage keys for programmatic access.</p>
-            </div>
-            <div className="panel p-6 rounded">
-              <h3 className="font-semibold mb-2">Predictive Models</h3>
-              <p className="text-sm">Ensemble ML models tuned for short/medium horizons.</p>
-            </div>
-            <div className="panel p-6 rounded">
-              <h3 className="font-semibold mb-2">Billing</h3>
-              <p className="text-sm">Simple flat pricing with Stripe-powered checkout.</p>
-            </div>
+            {/* hero illustration intentionally omitted */}
           </div>
         </section>
       </main>

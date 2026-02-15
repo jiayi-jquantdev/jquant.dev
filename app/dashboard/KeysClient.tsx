@@ -16,7 +16,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   async function fetchKeys() {
     setLoading(true);
     try {
-      const res = await fetch('/api/keys');
+      const res = await fetch('/api/keys', { credentials: 'include' });
       if (res.ok) {
         const j = await res.json();
         setKeys(j.keys || []);
@@ -32,7 +32,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   async function createKey() {
     setLoading(true);
     try {
-      const res = await fetch('/api/keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: 'paid' }) });
+      const res = await fetch('/api/keys', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: 'paid' }) });
       if (res.ok) {
         await fetchKeys();
       } else {
@@ -51,7 +51,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   async function handleDelete(keyId: string) {
     setProcessing(true);
     try {
-      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         await fetchKeys();
         setOpenMenu(null);
