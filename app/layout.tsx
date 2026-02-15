@@ -2,6 +2,7 @@ import Link from "next/link";
 import "./globals.css";
 import { cookies } from "next/headers";
 import { verifyJwt } from "../lib/auth";
+import HeaderAuthClient from "./components/HeaderAuthClient";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -20,18 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </nav>
               </div>
 
-              <nav className="flex items-center gap-3">
-                {payload ? (
-                  <form action="/api/auth/logout" method="post">
-                    <button type="submit" className="text-sm font-medium">Logout</button>
-                  </form>
-                ) : (
-                  <>
-                    <Link href="/login" className="text-sm font-medium">Login</Link>
-                    <Link href="/signup" className="text-sm font-medium">Sign up</Link>
-                  </>
-                )}
-              </nav>
+              <HeaderAuthClient initialUser={payload} />
             </div>
           </header>
 
@@ -39,16 +29,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="max-w-7xl mx-auto px-4 py-8">{children}</div>
           </main>
 
-          <footer className="fixed bottom-0 left-0 w-full h-20 footer">
+          <footer className="w-full h-20 footer">
             <div className="max-w-7xl mx-auto h-20 flex items-center justify-between px-4 text-sm">
-              <div>
-                © jquant.dev 2026 · <span className="ml-2">📷 <a href="https://instagram.com/jquant.dev" className="underline">@jquant.dev</a> · <a href="https://instagram.com/jiayi.jquant" className="underline">@jiayi.jquant</a></span>
-                <div className="mt-1">Email: <a href="mailto:jiayi@jquant.dev" className="underline">jiayi@jquant.dev</a></div>
-              </div>
               <div className="flex items-center gap-4">
-                <a href="/terms" className="underline">Terms</a>
-                <a href="/privacy" className="underline">Privacy</a>
-                <a href="/legal" className="underline">Legal</a>
+                <span>© jquant.dev 2026 ·</span>
+                <span className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block">
+                    <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                  <a href="https://instagram.com/jquant.dev" className="underline">@jquant.dev</a>
+                  <span>·</span>
+                  <a href="https://instagram.com/jiayi.jquant" className="underline">@jiayi.jquant</a>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <a href="mailto:jiayi@jquant.dev" className="underline">jiayi@jquant.dev</a>
+                <Link href="/terms" className="underline">Terms</Link>
+                <Link href="/privacy" className="underline">Privacy</Link>
+                <Link href="/legal" className="underline">Legal</Link>
               </div>
             </div>
           </footer>
