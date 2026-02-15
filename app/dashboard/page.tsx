@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { verifyJwt } from "../../lib/auth";
 import BillingWrapper from "./BillingWrapper";
 
-export default function DashboardPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get('token')?.value || null;
+export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get?.('token')?.value || null;
   const payload: any = token ? verifyJwt(token) : null;
   if (!payload) redirect('/login');
 
