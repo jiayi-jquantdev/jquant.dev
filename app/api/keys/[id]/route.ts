@@ -55,73 +55,76 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
       kept.push(k);
     }
   }
-  user.keys = kept;
-  await writeJson('users.json', users);
-
-  // if deleted key maps to a subscription price, try to cancel subscriptions for this user
-  try {
-    if (deletedKey) {
-      // 1) If we have a subscriptionId saved on the key, cancel that subscription directly
+  // Before deleting the key, ensure there are no active Stripe subscriptions tied to it.
+  if (deletedKey) {
+    try {
+      // 1) If the key stores a direct subscriptionId, check its status
       if (deletedKey.subscriptionId) {
         try {
-          await stripe.subscriptions.del(String(deletedKey.subscriptionId));
+          const sub = await stripe.subscriptions.retrieve(String(deletedKey.subscriptionId)).catch(()=>null);
+          if (sub && (sub as any).status && (sub as any).status !== 'canceled' && (sub as any).status !== 'incomplete_expired' && (sub as any).status !== 'deleted') {
+            return new Response(JSON.stringify({ error: 'Active subscription detected', details: 'Cancel the Stripe subscription before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+          }
         } catch (e) {
-          // ignore
+          // If we cannot retrieve subscription, be conservative and block deletion
+          return new Response(JSON.stringify({ error: 'Subscription check failed', details: 'Could not verify subscription status; cancel subscription in Stripe before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
         }
-      } else if (deletedKey.priceKeyName) {
-        // 2) Resolve the stored priceKeyName to an actual Stripe price id if an env var was stored
+      }
+
+      // 2) If the key references a priceKeyName, resolve to a Stripe price id and check customers' subscriptions
+      else if (deletedKey.priceKeyName) {
         const pkName = typeof deletedKey?.priceKeyName === 'string' ? deletedKey.priceKeyName : '';
-        let targetPriceId = pkName ? (process.env[pkName] || pkName) : '';
-
-        // try to retrieve the price to confirm it's recurring and get its id
-        let priceObj: unknown = null;
-        try {
-          if (typeof targetPriceId === 'string' && targetPriceId) {
-            priceObj = await stripe.prices.retrieve(targetPriceId as string).catch(()=>null);
-          }
-        } catch (e) {
-          priceObj = null;
+        const targetPriceId = pkName ? (process.env[pkName] || pkName) : '';
+        let priceObj: any = null;
+        if (targetPriceId) {
+          try { priceObj = await stripe.prices.retrieve(targetPriceId).catch(()=>null); } catch (e) { priceObj = null; }
         }
 
-        // if the price is recurring (subscription), find all customers with this user's email and cancel matching subscriptions
-        if (priceObj && (priceObj as any).recurring) {
-          // fetch customers by email (may be multiple)
-          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
-          for (const customer of (customers.data || [])) {
-            const subs = await stripe.subscriptions.list({ customer: (customer as any).id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
-            for (const s of (subs.data || [])) {
-              try {
-                // check items for matching price id
-                const match = ((s as any).items?.data || []).some((it: any) => {
-                  if (!it.price) return false;
-                  if (typeof targetPriceId === 'string' && (it.price as any).id === targetPriceId) return true;
-                  if (priceObj && (it.price as any).id === (priceObj as any).id) return true;
-                  if (priceObj && (it.price as any).product && (it.price as any).product === (priceObj as any).product) return true;
-                  return false;
-                });
-                if (match) {
-                  await stripe.subscriptions.del(((s as unknown) as Stripe.Subscription).id).catch(()=>null);
-                }
-              } catch (e) {
-                // ignore per-subscription errors
-              }
-            }
-          }
-        } else {
-          // If we couldn't retrieve a recurring price, as a fallback try to cancel any subscription that references this user's email
-          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
-          for (const customer of (customers.data || [])) {
-            const subs = await stripe.subscriptions.list({ customer: (customer as any).id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
-            for (const s of (subs.data || [])) {
-              try { await stripe.subscriptions.del((s as any).id).catch(()=>null); } catch (e) {}
+        // fetch customers by email and examine subscriptions
+        const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as any));
+        for (const customer of (customers.data || [])) {
+          const subs = await stripe.subscriptions.list({ customer: (customer as any).id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as any));
+          for (const s of (subs.data || [])) {
+            const status = (s as any).status;
+            if (status === 'canceled' || status === 'incomplete_expired' || status === 'deleted') continue;
+            // check items for matching price id or product
+            const items = ((s as any).items?.data || []);
+            const match = items.some((it: any) => {
+              if (!it.price) return false;
+              if (targetPriceId && it.price.id === targetPriceId) return true;
+              if (priceObj && it.price.id === priceObj.id) return true;
+              if (priceObj && it.price.product && it.price.product === priceObj.product) return true;
+              return false;
+            });
+            if (match) {
+              return new Response(JSON.stringify({ error: 'Active subscription detected', details: 'Cancel the Stripe subscription before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
             }
           }
         }
       }
+      // 3) As a final conservative fallback, if any active subscription exists for this user's email, block deletion
+      else {
+        const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as any));
+        for (const customer of (customers.data || [])) {
+          const subs = await stripe.subscriptions.list({ customer: (customer as any).id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as any));
+          for (const s of (subs.data || [])) {
+            const status = (s as any).status;
+            if (status && status !== 'canceled' && status !== 'incomplete_expired' && status !== 'deleted') {
+              return new Response(JSON.stringify({ error: 'Active subscription detected', details: 'Cancel the Stripe subscription before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // On any Stripe API error, be conservative and block deletion with an explanatory message
+      console.log('Stripe check error', e);
+      return new Response(JSON.stringify({ error: 'Subscription check failed', details: 'Could not verify subscriptions; cancel any active subscriptions in Stripe before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
-  } catch (e) {
-    // ignore stripe errors but log server-side if desired
   }
+
+  // Safe to delete: write back users.json with key removed
+  user.keys = kept;
+  await writeJson('users.json', users);
 
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
