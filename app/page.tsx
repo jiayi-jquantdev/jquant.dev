@@ -2,25 +2,37 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-      <main className="w-full max-w-3xl p-12">
-        <header className="flex items-center justify-between mb-12">
-          <div>
-            <h1 className="text-2xl font-semibold">JQuant — Simple ML Stock Predictions</h1>
-            <p className="text-sm text-zinc-600">1m / 3m / 6m return predictions via API keys</p>
-          </div>
-          <nav className="flex gap-4">
-            <Link href="/login" className="text-sm text-foreground">Log in</Link>
-            <Link href="/signup" className="text-sm text-foreground">Sign up</Link>
-          </nav>
-        </header>
+    <div className="min-h-screen flex items-center justify-center">
+      <main className="w-full">
+        <section className="min-h-[72vh] flex items-center">
+          <div className="max-w-6xl mx-auto px-6 py-20 flex items-center justify-between">
+            <div className="max-w-2xl">
+              <h1 className="text-5xl font-extrabold mb-4 text-foreground">jquant.dev</h1>
+              <p className="text-lg text-zinc-600 mb-8">Simple, reliable machine-learning stock return predictions served by an API. Get 1m / 3m / 6m horizon forecasts with API keys.</p>
+              <div className="flex gap-3">
+                <Link href="/signup" className="px-5 py-3 rounded bg-foreground text-background">Create account</Link>
+                <Link href="/docs" className="px-5 py-3 rounded border">Documentation</Link>
+              </div>
+            </div>
 
-        <section className="bg-white p-8 rounded-md shadow-sm">
-          <h2 className="text-xl font-medium mb-2">Get predictive stock returns — simply</h2>
-          <p className="text-zinc-600 mb-6">Start with one free API key. Buy more keys to increase call limits and get premium per-minute throughput.</p>
-          <div className="flex gap-3">
-            <Link href="/signup" className="px-4 py-2 rounded bg-foreground text-background">Create account</Link>
-            <Link href="/dashboard" className="px-4 py-2 rounded border">Dashboard</Link>
+            <div className="hidden md:block w-96 h-64 bg-gradient-to-br from-zinc-100 to-white rounded-lg shadow-md"></div>
+          </div>
+        </section>
+
+        <section className="max-w-6xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card p-6 rounded">
+              <h3 className="font-semibold mb-2">API Keys</h3>
+              <p className="text-sm text-zinc-600">Create and manage keys for programmatic access.</p>
+            </div>
+            <div className="card p-6 rounded">
+              <h3 className="font-semibold mb-2">Predictive Models</h3>
+              <p className="text-sm text-zinc-600">Ensemble ML models tuned for short/medium horizons.</p>
+            </div>
+            <div className="card p-6 rounded">
+              <h3 className="font-semibold mb-2">Billing</h3>
+              <p className="text-sm text-zinc-600">Simple flat pricing with Stripe-powered checkout.</p>
+            </div>
           </div>
         </section>
       </main>
