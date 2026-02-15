@@ -88,10 +88,10 @@ export async function POST(req: NextRequest) {
 
     // record usage in data/usage.json (increment total calls for this key)
     try {
-      const usages = (await readJson<Record<string, any>>('usage.json').catch(() => ({}))) || {};
-      const cur = usages[apiKey] || { calls: 0 };
-      cur.calls = (cur.calls || 0) + 1;
-      usages[apiKey] = cur;
+      const usages = (await readJson<Record<string, any>>('usage.json').catch(() => ({} as Record<string, any>))) || {};
+      const cur = (usages as Record<string, any>)[apiKey] as Record<string, any> | undefined;
+      const updated = { ...(cur || { calls: 0 }), calls: ((cur && Number(cur.calls)) || 0) + 1 };
+      (usages as Record<string, any>)[apiKey] = updated;
       await writeJson('usage.json', usages);
     } catch (e) {
       console.log('Failed to record usage.json', e);
