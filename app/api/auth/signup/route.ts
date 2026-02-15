@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { hashPassword, createJwt } from "../../../../lib/auth";
 import { readJson, writeJson } from "../../../../lib/fs-utils";
 
@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
   }
 
   const hashed = await hashPassword(password);
-  const id = uuidv4();
-  const freeKey = uuidv4();
+  const id = randomUUID();
+  const freeKey = randomUUID();
   const user = {
     id,
     email,

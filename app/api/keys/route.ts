@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { verifyJwt } from "../../../lib/auth";
 import { readJson, writeJson } from "../../../lib/fs-utils";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export async function GET(req: NextRequest) {
   const cookie = req.headers.get("cookie") || "";
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   const newKey = {
-    key: uuidv4(),
+    key: randomUUID(),
     tier,
     callsRemainingPerMinute: tier === 'free' ? 1 : 60,
     createdAt: new Date().toISOString(),

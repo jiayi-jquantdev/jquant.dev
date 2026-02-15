@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
+import { verifyJwt } from "../../../../lib/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-11-15" });
 
@@ -11,6 +12,13 @@ export async function POST(req: NextRequest) {
   const priceId = process.env[priceKeyName];
   if (!priceId) return new Response(JSON.stringify({ error: 'Price not configured' }), { status: 400 });
 
+  // try to attach user id from JWT cookie so webhook can identify who paid
+  const cookie = req.headers.get('cookie') || '';
+  const tokenMatch = cookie.split(';').map(s => s.trim()).find(s => s.startsWith('token='));
+  const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
+  const payload: any = token ? verifyJwt(token) : null;
+  const userId = payload?.id || null;
+
   try {
     const price = await stripe.prices.retrieve(priceId);
     const amount = (price.unit_amount || 0);
@@ -19,7 +27,7 @@ export async function POST(req: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency,
-      // automatic payment methods allow Stripe to manage card networks; we'll use client-side confirm
+      metadata: { userId: userId || '' , priceKeyName },
       automatic_payment_methods: { enabled: true },
     });
 
