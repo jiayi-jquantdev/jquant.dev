@@ -17,7 +17,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <MobileSidebar />
-                <Link href="/" className="font-semibold text-xl">jquant.dev</Link>
+                <Link href="/" className="sr-only sm:not-sr-only">
+                  <img src="/globe.svg" alt="jquant" className="h-8 w-auto" />
+                </Link>
                 <div className="hidden sm:flex items-center gap-3 text-sm">
                   <span>© jquant.dev 2026 ·</span>
                   <a href="https://instagram.com/jquant.dev" target="_blank" rel="noopener noreferrer" className="underline">@jquant.dev</a>

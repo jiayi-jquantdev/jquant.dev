@@ -2,6 +2,8 @@
 @import "tailwindcss";
 
 :root {
+  --header-height: 4rem;
+  --panel: #2D2D2D;
   --background: #fdfcf9;
   --foreground: #0f1e38;
   --card: #ffffff;
@@ -51,12 +53,14 @@
 }
 
 .dark {
-  --background: #000000;
+  --header-height: 4rem;
+  --panel: #2D2D2D;
+    --background: #000000;
   --foreground: #f5f1e6;
-  --card: #0f1e38;
-  --card-foreground: #f5f1e6;
-  --popover: #0f1e38;
-  --popover-foreground: #f5f1e6;
+    --card: var(--panel);
+    --card-foreground: #f5f1e6;
+    --popover: var(--panel);
+    --popover-foreground: #f5f1e6;
   --primary: #d8b98f;
   --primary-foreground: #0f1e38;
   --secondary: #18294d;
@@ -75,7 +79,7 @@
   --chart-3: #b8b4ab;
   --chart-4: #ffffff;
   --chart-5: #5a4d3c;
-  --sidebar: #0f1e38;
+    --sidebar: var(--panel);
   --sidebar-foreground: #f5f1e6;
   --sidebar-primary: #d8b98f;
   --sidebar-primary-foreground: #0f1e38;
@@ -117,8 +121,10 @@ h1,h2,h3,h4,h5,h6 {
 
 /* Main content area: limit vertical scrolling to the viewport minus header/footer */
 .main-content {
+  /* limit the scrolling area to the viewport minus header; contain overscroll to avoid body bleed */
   max-height: calc(100vh - var(--header-height));
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .sidebar {
@@ -141,7 +147,8 @@ h1,h2,h3,h4,h5,h6 {
 
 /* Panels use the dark foreground as a filled background with light text */
 .panel {
-  background: var(--foreground);
+  /* Black-style panels should use the exact panel color */
+  background: var(--panel);
   color: var(--background);
   border: 1px solid var(--card-foreground);
 }
@@ -153,7 +160,7 @@ h1,h2,h3,h4,h5,h6 {
 .btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-primary { background: var(--foreground); color: var(--background); padding: .5rem 1rem; border-radius: .375rem; border: none; }
 /* footer removed; kept for compatibility if referenced */
-.mobile-drawer { background: rgba(0,0,0,0.35); display: flex; }
+.mobile-drawer { background: rgba(45,45,45,0.35); display: flex; }
 .mobile-drawer > .drawer-panel { min-height: 100vh; transform: translateX(-100%); transition: transform .28s cubic-bezier(.2,.9,.2,1); }
 .mobile-drawer.open > .drawer-panel { transform: translateX(0); }
 .mobile-drawer > .drawer-backdrop { flex: 1; }
@@ -171,7 +178,7 @@ button, .btn, input[type="button"], input[type="submit"] {
 
 /* Outline buttons (common pattern: have border but no bg) */
 button.border, .btn.border, a.border, button[role="button"] {
-  border-color: rgba(0,0,0,0.06);
+  border-color: rgba(45,45,45,0.06);
 }
 button.border:hover, .btn.border:hover, a.border:hover, button[role="button"]:hover, a.btn:hover {
   background: var(--card);
