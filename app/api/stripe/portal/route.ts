@@ -9,10 +9,10 @@ export async function POST(req: NextRequest) {
   const cookie = req.headers.get('cookie') || '';
   const tokenMatch = cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
   const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   if (!payload) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
 
-  const user = await findUserById(payload.id);
+  const user = await findUserById(String(payload.id));
   if (!user) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
 
   try {
@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || '';
     const session = await stripe.billingPortal.sessions.create({ customer: customer.id, return_url: `${origin}/dashboard` });
     return new Response(JSON.stringify({ url: session.url }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'stripe error' }), { status: 500 });
+  } catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+    return new Response(JSON.stringify({ error: msg || 'stripe error' }), { status: 500 });
   }
 }

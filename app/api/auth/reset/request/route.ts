@@ -9,8 +9,8 @@ export async function POST(req: Request) {
     if (!email) return NextResponse.json({ error: 'Missing email' }, { status: 400 });
 
     // find user in file-based store
-    const users = await readJson<any[]>('users.json').catch(() => []);
-    const user = users.find(u => u.email && u.email.toLowerCase() === email);
+    const users = await readJson<Record<string, unknown>[]>('users.json').catch(() => []);
+    const user = users.find(u => (u.email as string | undefined)?.toLowerCase() === email);
     if (!user) {
       // Don't reveal whether email exists — return ok
       return NextResponse.json({ ok: true });
@@ -39,8 +39,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || String(e) }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+    return NextResponse.json({ error: msg || String(e) }, { status: 500 });
   }
 }
 

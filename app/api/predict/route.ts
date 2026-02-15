@@ -47,12 +47,12 @@ export async function POST(req: NextRequest) {
   // find user/key
   const found = await findUserByApiKey(apiKey);
   if (!found) return new Response(JSON.stringify({ error: 'Invalid API key' }), { status: 401 });
-  const k = found.key as any;
+  const k = found.key as { tier?: string; priceKeyName?: string; metadata?: { priceKeyName?: string } } | undefined;
   let tierKeyName = 'free';
-  if (k.tier === 'free') tierKeyName = 'free';
+  if (k?.tier === 'free') tierKeyName = 'free';
   else {
-    const priceKey = k.priceKeyName || (k.metadata && k.metadata.priceKeyName) || '';
-    tierKeyName = detectTierKeyFromPriceKey(priceKey as string);
+    const priceKey = k?.priceKeyName || (k?.metadata && k.metadata.priceKeyName) || '';
+    tierKeyName = detectTierKeyFromPriceKey(String(priceKey));
   }
 
   const limits = TIERS[tierKeyName] || TIERS['free'];

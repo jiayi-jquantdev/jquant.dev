@@ -1,7 +1,6 @@
 "use client";
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useParams } from 'next/navigation';
 
 export default function ResetSubmitPage({ params }: { params: { token: string } }) {
   // In Next app router, params come in server props; but we accept via props too
@@ -10,7 +9,7 @@ export default function ResetSubmitPage({ params }: { params: { token: string } 
   const [status, setStatus] = useState<string | null>(null);
   const router = useRouter();
 
-  async function submit(e: any) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus('Resetting...');
     try {
@@ -22,8 +21,9 @@ export default function ResetSubmitPage({ params }: { params: { token: string } 
         const j = await res.json().catch(()=>({}));
         setStatus(j.error || 'Error resetting password');
       }
-    } catch (e: any) {
-      setStatus(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setStatus(msg || 'Network error');
     }
   }
 

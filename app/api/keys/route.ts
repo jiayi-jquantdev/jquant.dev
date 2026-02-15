@@ -7,10 +7,10 @@ export async function GET(req: NextRequest) {
   const cookie = req.headers.get("cookie") || "";
   const tokenMatch = cookie.split(";").map(s=>s.trim()).find(s=>s.startsWith("token="));
   const token = tokenMatch ? tokenMatch.replace("token=", "") : null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   if (!payload) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
-  const user = await findUserById(payload.id);
+  const user = await findUserById(String(payload.id));
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   const keys = await listKeysForUser(user.id);
@@ -22,20 +22,20 @@ export async function POST(req: NextRequest) {
   const cookie = req.headers.get("cookie") || "";
   const tokenMatch = cookie.split(";").map(s=>s.trim()).find(s=>s.startsWith("token="));
   const token = tokenMatch ? tokenMatch.replace("token=", "") : null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   if (!payload) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   const body = await req.json();
   const tier = body?.tier || "paid";
   const name = body?.name || (tier === 'free' ? 'Free key' : 'Paid key');
 
-  const user = await findUserById(payload.id);
+  const user = await findUserById(String(payload.id));
   if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   // Prevent more than one paid key per account
   if (tier === 'paid') {
     const existing = await listKeysForUser(user.id);
-    if ((existing || []).some((k: any) => (k as any).tier === 'paid')) {
+    if ((existing || []).some((k) => k.tier === 'paid')) {
       return new Response(JSON.stringify({ error: 'Account already has a paid key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
   }

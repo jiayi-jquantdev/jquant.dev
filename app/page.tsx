@@ -6,7 +6,7 @@ import { verifyJwt } from "../lib/auth";
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get?.('token')?.value || null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   if (payload) redirect('/dashboard');
 
   return (

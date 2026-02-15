@@ -6,8 +6,8 @@ import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2022-11-15' });
 
-export async function DELETE(req: NextRequest, context: any) {
-  const id = context?.params?.id;
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const id = String((await context.params).id);
   // try to extract JWT from cookie or Authorization header
   const cookieHeader = req.headers.get('cookie') || '';
   let token: string | null = null;
@@ -17,19 +17,19 @@ export async function DELETE(req: NextRequest, context: any) {
     const auth = req.headers.get('authorization') || '';
     if (auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
   }
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   if (!payload) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
 
   // file-based users.json handling
-  const users = await readJson<any[]>('users.json');
-  const user = users.find(u => u.id === payload.id);
+  const users = await readJson<{ id: string; email: string; keys?: any[] }[]>('users.json');
+  const user = users.find(u => u.id === String(payload.id));
   if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   const keys = user.keys || [];
-  const kept = [];
-  let deletedKey: any = null;
+  const kept: unknown[] = [];
+  let deletedKey: Record<string, unknown> | null = null;
   for (const k of keys) {
-    if (k.id === id || k.key === id) {
-      deletedKey = k;
+    if ((k as any).id === id || (k as any).key === id) {
+      deletedKey = k as Record<string, unknown>;
     } else {
       kept.push(k);
     }
@@ -49,14 +49,13 @@ export async function DELETE(req: NextRequest, context: any) {
         }
       } else if (deletedKey.priceKeyName) {
         // 2) Resolve the stored priceKeyName to an actual Stripe price id if an env var was stored
-        let targetPriceId = process.env[deletedKey.priceKeyName] || deletedKey.priceKeyName;
-        // if targetPriceId looks like an env var name (no price_ prefix) but wasn't found, try using it directly
-        if (!targetPriceId) targetPriceId = deletedKey.priceKeyName;
+        const pkName = typeof deletedKey?.priceKeyName === 'string' ? deletedKey.priceKeyName : '';
+        let targetPriceId = pkName ? (process.env[pkName] || pkName) : '';
 
         // try to retrieve the price to confirm it's recurring and get its id
-        let priceObj: any = null;
+        let priceObj: unknown = null;
         try {
-          if (typeof targetPriceId === 'string') {
+          if (typeof targetPriceId === 'string' && targetPriceId) {
             priceObj = await stripe.prices.retrieve(targetPriceId as string).catch(()=>null);
           }
         } catch (e) {
@@ -64,26 +63,23 @@ export async function DELETE(req: NextRequest, context: any) {
         }
 
         // if the price is recurring (subscription), find all customers with this user's email and cancel matching subscriptions
-        if (priceObj && priceObj.recurring) {
+        if (priceObj && (priceObj as any).recurring) {
           // fetch customers by email (may be multiple)
-          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as any));
+          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
           for (const customer of (customers.data || [])) {
-            const subs = await stripe.subscriptions.list({ customer: customer.id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as any));
+            const subs = await stripe.subscriptions.list({ customer: (customer as any).id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
             for (const s of (subs.data || [])) {
               try {
                 // check items for matching price id
-                const match = (s.items.data || []).some((it: any) => {
+                const match = ((s as any).items?.data || []).some((it: any) => {
                   if (!it.price) return false;
-                  // compare price id directly
-                  if (typeof targetPriceId === 'string' && it.price.id === targetPriceId) return true;
-                  // compare against retrieved price id
-                  if (priceObj && it.price.id === priceObj.id) return true;
-                  // also accept match if price product matches (same product across plans)
-                  if (priceObj && it.price.product && it.price.product === priceObj.product) return true;
+                  if (typeof targetPriceId === 'string' && (it.price as any).id === targetPriceId) return true;
+                  if (priceObj && (it.price as any).id === (priceObj as any).id) return true;
+                  if (priceObj && (it.price as any).product && (it.price as any).product === (priceObj as any).product) return true;
                   return false;
                 });
                 if (match) {
-                  await stripe.subscriptions.del(s.id).catch(()=>null);
+                  await stripe.subscriptions.del(((s as unknown) as Stripe.Subscription).id).catch(()=>null);
                 }
               } catch (e) {
                 // ignore per-subscription errors
@@ -92,11 +88,11 @@ export async function DELETE(req: NextRequest, context: any) {
           }
         } else {
           // If we couldn't retrieve a recurring price, as a fallback try to cancel any subscription that references this user's email
-          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as any));
+          const customers = await stripe.customers.list({ email: user.email, limit: 10 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
           for (const customer of (customers.data || [])) {
-            const subs = await stripe.subscriptions.list({ customer: customer.id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as any));
+            const subs = await stripe.subscriptions.list({ customer: (customer as any).id, status: 'all', limit: 100 }).catch(()=>({ data: [] } as unknown as { data: unknown[] }));
             for (const s of (subs.data || [])) {
-              try { await stripe.subscriptions.del(s.id).catch(()=>null); } catch (e) {}
+              try { await stripe.subscriptions.del((s as any).id).catch(()=>null); } catch (e) {}
             }
           }
         }

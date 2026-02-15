@@ -17,13 +17,13 @@ const ENV_PRICE_TO_CALLS: Record<string, number> = {
 function getCallsFromPriceKey(keyOrId?: string) {
   if (!keyOrId) return 60;
   // if the stored value is an env var name like 'TENCALLS_PRICE_ID'
-  if ((ENV_PRICE_TO_CALLS as any)[keyOrId]) return (ENV_PRICE_TO_CALLS as any)[keyOrId];
+  if (typeof keyOrId === 'string' && keyOrId in ENV_PRICE_TO_CALLS) return ENV_PRICE_TO_CALLS[keyOrId as string];
   // otherwise check against actual configured price ids
   for (const envName of Object.keys(ENV_PRICE_TO_CALLS)) {
     const pid = process.env[envName];
-    if (pid && pid === keyOrId) return (ENV_PRICE_TO_CALLS as any)[envName];
+    if (pid && pid === keyOrId) return ENV_PRICE_TO_CALLS[envName];
     // also allow partial match if someone stored the env name in the string
-    if (keyOrId.includes(envName.replace('_PRICE_ID', ''))) return (ENV_PRICE_TO_CALLS as any)[envName];
+    if (typeof keyOrId === 'string' && keyOrId.includes(envName.replace('_PRICE_ID', ''))) return ENV_PRICE_TO_CALLS[envName];
   }
   return 60;
 }
@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (e: any) {
-    return new Response(`Webhook error: ${e.message}`, { status: 400 });
+    const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+    return new Response(`Webhook error: ${msg}`, { status: 400 });
   }
 
   // handle payment_intent.succeeded to grant key
@@ -78,9 +79,9 @@ export async function POST(req: NextRequest) {
       if (user) {
         // only add a paid key if the user doesn't already have one
         const existing = await listKeysForUser(user.id);
-        if (!(existing || []).some((k: any) => (k as any).tier === 'paid')) {
+        if (!(existing || []).some((k) => k.tier === 'paid')) {
           const id = randomUUID();
-          const newKey = { id, key: id, name: 'Paid key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName };
+            const newKey = { id, key: id, name: 'Paid key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName: priceKeyName || undefined };
           await addApiKeyForUser(userId, newKey);
         }
       }
@@ -111,14 +112,14 @@ export async function POST(req: NextRequest) {
         if (user) {
           // only add a paid key if the user doesn't already have one
           const existing = await listKeysForUser(user.id);
-          if (!(existing || []).some((k: any) => (k as any).tier === 'paid')) {
+          if (!(existing || []).some((k) => k.tier === 'paid')) {
             const id = randomUUID();
-            const newKey = { id, key: id, name: 'Subscription key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName: priceId || null, subscriptionId };
+            const newKey = { id, key: id, name: 'Subscription key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName: priceId || undefined, subscriptionId };
             await addApiKeyForUser(user.id, newKey);
-            await recordPayment(user.id, priceId || null, (session.amount_total as any) || 0, subscriptionId || '');
+            await recordPayment(user.id, priceId || null, Number(session.amount_total || 0) || 0, subscriptionId || '');
           } else {
             // still record payment but do not create a duplicate paid key
-            await recordPayment(user.id, priceId || null, (session.amount_total as any) || 0, subscriptionId || '');
+            await recordPayment(user.id, priceId || null, Number(session.amount_total || 0) || 0, subscriptionId || '');
           }
         }
       } catch (e) {

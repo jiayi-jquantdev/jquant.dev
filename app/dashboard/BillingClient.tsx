@@ -16,8 +16,9 @@ export default function BillingClient() {
       } else {
         setError(j.error || 'Failed to start checkout');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     } finally {
       setLoading(false);
     }

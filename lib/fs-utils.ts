@@ -3,7 +3,7 @@ import path from "path";
 
 const dataDir = path.join(process.cwd(), "data");
 
-export async function readJson<T = any>(filename: string): Promise<T> {
+export async function readJson<T = unknown>(filename: string): Promise<T> {
   const p = path.join(dataDir, filename);
   try {
     const raw = await fs.readFile(p, "utf8");
@@ -13,7 +13,7 @@ export async function readJson<T = any>(filename: string): Promise<T> {
   }
 }
 
-export async function writeJson(filename: string, obj: any) {
+export async function writeJson(filename: string, obj: unknown) {
   const p = path.join(dataDir, filename);
   await fs.writeFile(p, JSON.stringify(obj, null, 2), "utf8");
 }

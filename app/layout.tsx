@@ -8,7 +8,7 @@ import MobileSidebar from "./components/MobileSidebar";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value || null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   return (
     <html lang="en">
       <body>

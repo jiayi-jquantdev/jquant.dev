@@ -9,12 +9,12 @@ import PaymentMethodsClient from "./PaymentMethodsClient";
 export default async function DashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get?.('token')?.value || null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   if (!payload) redirect('/login');
 
   // load keys (simple file storage)
   const keysPath = path.join(process.cwd(), 'data', 'keys.json');
-  let keys: any[] = [];
+  let keys: unknown[] = [];
   try {
     const raw = fs.readFileSync(keysPath, 'utf-8');
     keys = JSON.parse(raw || '[]');
@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     keys = [];
   }
 
-  const userKeys = keys.filter(k => k.ownerId === payload.id);
+  const userKeys = keys.filter((k: any) => k.ownerId === String(payload.id));
 
   return (
     <div className="min-h-screen p-8">
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
 
         <section className="panel p-6 rounded shadow mb-6 w-full">
           <h3 className="font-medium mb-2">API Keys</h3>
-          <KeysClient initialKeys={userKeys} />
+          <KeysClient initialKeys={userKeys as any} />
         </section>
 
         <section className="panel p-6 rounded shadow w-full">

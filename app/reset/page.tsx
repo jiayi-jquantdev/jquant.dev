@@ -1,11 +1,11 @@
 "use client";
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 
 export default function ResetRequestPage() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<string | null>(null);
 
-  async function submit(e: any) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus('Sending...');
     try {
@@ -17,7 +17,8 @@ export default function ResetRequestPage() {
         setStatus(j.error || 'Error sending reset');
       }
     } catch (e: any) {
-      setStatus(e.message || 'Network error');
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setStatus(msg || 'Network error');
     }
   }
 

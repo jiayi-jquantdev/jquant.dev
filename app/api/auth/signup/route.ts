@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const hashed = await hashPassword(password);
   const user = await createUser(email, hashed);
   // create initial free key
-  const freeKey = (globalThis as any).crypto?.randomUUID ? (globalThis as any).crypto.randomUUID() : String(Date.now());
+  const freeKey = typeof randomUUID === 'function' ? randomUUID() : String(Date.now());
   const keyObj = { key: freeKey, tier: 'free', callsRemainingPerMinute: 5, createdAt: new Date().toISOString() };
   await (await import('../../../../lib/db')).addApiKeyForUser(user.id, keyObj);
 

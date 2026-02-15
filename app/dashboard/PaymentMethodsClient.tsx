@@ -15,8 +15,9 @@ export default function PaymentMethodsClient() {
       } else {
         setError(j.error || 'Could not open customer portal');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     }
     setLoading(false);
   }

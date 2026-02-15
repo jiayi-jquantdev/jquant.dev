@@ -12,13 +12,13 @@ export async function comparePassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-export function createJwt(payload: any, expiresIn = "7d") {
+export function createJwt(payload: Record<string, unknown>, expiresIn = "7d") {
   return jwt.sign(payload, JWT_SECRET as jwt.Secret, { expiresIn } as jwt.SignOptions);
 }
 
-export function verifyJwt(token: string) {
+export function verifyJwt(token: string): Record<string, unknown> | null {
   try {
-    return jwt.verify(token, JWT_SECRET as jwt.Secret) as any;
+    return jwt.verify(token, JWT_SECRET as jwt.Secret) as Record<string, unknown>;
   } catch (e) {
     return null;
   }

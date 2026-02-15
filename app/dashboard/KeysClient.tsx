@@ -10,9 +10,6 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [revealKey, setRevealKey] = useState<string | null>(null);
-
-  useEffect(() => { fetchKeys(); }, []);
-
   async function fetchKeys() {
     setLoading(true);
     try {
@@ -23,8 +20,9 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
       } else {
         setError('Unauthorized or error');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     }
     setLoading(false);
   }
@@ -38,8 +36,9 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
       } else {
         setError('Could not create key');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     }
     setLoading(false);
   }
@@ -59,8 +58,9 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
         const j = await res.json().catch(()=>({}));
         setError(j.error || 'Could not delete key');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     }
     setProcessing(false);
   }
@@ -76,8 +76,9 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
       } else {
         setError(j.error || 'Failed to create checkout');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     }
     setProcessing(false);
   }
@@ -92,8 +93,9 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
       } else {
         setError(j.error || 'Failed to create checkout');
       }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+      setError(msg || 'Network error');
     }
     setProcessing(false);
   }
@@ -120,12 +122,12 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
           {keys.length === 0 && <div className="text-sm text-background">No keys found.</div>}
           <ul className="mt-4 space-y-2">
             {keys.map(k => {
-              const keyId = (k as any).id || (k as any).key;
+                const keyId = k.id || k.key || '';
               return (
                 <li key={keyId} className="p-3 border rounded flex justify-between items-center">
                   <div>
-                    <div className="font-medium text-background">{(k as any).name || 'API key'}</div>
-                    <div className="text-xs text-background">{(k as any).tier || ''} • created</div>
+                      <div className="font-medium text-background">{k.name || 'API key'}</div>
+                      <div className="text-xs text-background">{k.tier || ''} • created</div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right text-xs text-background">{k.limit || 0} calls/min</div>
@@ -134,7 +136,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
                       {openMenu === keyId && (
                         <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2 key-menu">
                           <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
-                          {(k as any).tier === 'free' && <button onClick={() => { setRevealKey((k as any).key || (k as any).id); setOpenMenu(null); }} className="w-full text-left px-2 py-1">View key</button>}
+                            {k.tier === 'free' && <button onClick={() => { setRevealKey(k.key || k.id || null); setOpenMenu(null); }} className="w-full text-left px-2 py-1">View key</button>}
                         </div>
                       )}
                     </div>
@@ -158,7 +160,7 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
           )}
 
           {/* Only show paid-key purchase options when the user does NOT already have a paid key */}
-          {!(keys || []).some(k => (k as any).tier === 'paid') && (
+          {!(keys || []).some(k => k.tier === 'paid') && (
             <div className="mt-6 flex items-center justify-between">
               <div className="font-medium text-background">Create paid key</div>
               <div className="flex gap-2">

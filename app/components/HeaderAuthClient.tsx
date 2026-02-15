@@ -3,8 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function HeaderAuthClient({ initialUser }: { initialUser?: any }) {
-  const [user, setUser] = useState<any>(initialUser || null);
+export default function HeaderAuthClient({ initialUser }: { initialUser?: Record<string, unknown> | null }) {
+  const [user, setUser] = useState<Record<string, unknown> | null>(initialUser || null);
   const [loading, setLoading] = useState<boolean>(!initialUser);
   const router = useRouter();
 

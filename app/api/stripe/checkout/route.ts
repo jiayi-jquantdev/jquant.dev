@@ -17,21 +17,21 @@ export async function POST(req: NextRequest) {
     const cookie = req.headers.get('cookie') || '';
     const tokenMatch = cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
     const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
-    let payload: any = null;
+    let payload: Record<string, unknown> | null = null;
     try { const { verifyJwt } = await import('../../../../lib/auth'); payload = token ? verifyJwt(token) : null; } catch (e) { payload = null; }
     // If a priceId is provided, detect whether it's recurring (subscription)
     if (priceId) {
       const price = await stripe.prices.retrieve(priceId);
       const isRecurring = !!(price.recurring);
-      const chosenMode = mode === 'setup' ? 'setup' : (isRecurring ? 'subscription' : 'payment');
+      const chosenMode: 'setup' | 'subscription' | 'payment' = mode === 'setup' ? 'setup' : (isRecurring ? 'subscription' : 'payment');
       const session = await stripe.checkout.sessions.create({
-        mode: chosenMode as any,
+        mode: chosenMode,
         payment_method_types: ['card'],
         line_items: chosenMode === 'setup' ? undefined : [{ price: priceId, quantity: 1 }],
         success_url: chosenMode === 'setup' ? `${origin}/dashboard?setup=success` : `${origin}/dashboard?checkout=success`,
         cancel_url: chosenMode === 'setup' ? `${origin}/dashboard?setup=cancelled` : `${origin}/dashboard?checkout=cancelled`,
-        metadata: { userId: payload?.id || '' },
-        customer_email: payload?.email || undefined,
+        metadata: { userId: String(payload?.id || '') },
+        customer_email: payload?.email ? String(payload.email) : undefined,
       });
       return new Response(JSON.stringify({ url: session.url }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } else {
@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
       });
       return new Response(JSON.stringify({ url: setupSession.url }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
-  } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'stripe error' }), { status: 500 });
+  } catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+    return new Response(JSON.stringify({ error: msg || 'stripe error' }), { status: 500 });
   }
 }

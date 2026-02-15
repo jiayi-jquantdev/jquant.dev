@@ -9,8 +9,8 @@ export async function POST(req: Request) {
     const password = body.password;
     if (!token || !password) return NextResponse.json({ error: 'Missing token or password' }, { status: 400 });
 
-    const users = await readJson<any[]>('users.json').catch(() => []);
-    const user = users.find(u => u.resetToken === token && u.resetExpires && u.resetExpires > Date.now());
+    const users = await readJson<Record<string, any>[]>('users.json').catch(() => []);
+    const user = users.find(u => u.resetToken === token && u.resetExpires && (u.resetExpires as number) > Date.now());
     if (!user) return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
 
     const hashed = await hashPassword(password);
@@ -20,8 +20,9 @@ export async function POST(req: Request) {
     await writeJson('users.json', users);
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || String(e) }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+    return NextResponse.json({ error: msg || String(e) }, { status: 500 });
   }
 }
 

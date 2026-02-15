@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const cookie = req.headers.get('cookie') || '';
   const tokenMatch = cookie.split(';').map(s => s.trim()).find(s => s.startsWith('token='));
   const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
-  const payload: any = token ? verifyJwt(token) : null;
+  const payload = token ? verifyJwt(token) : null;
   const userId = payload?.id || null;
 
   try {
@@ -27,12 +27,13 @@ export async function POST(req: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency,
-      metadata: { userId: userId || '' , priceKeyName },
+      metadata: { userId: String(userId || '') , priceKeyName },
       automatic_payment_methods: { enabled: true },
     });
 
     return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message || 'stripe error' }), { status: 500 });
+  } catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+    return new Response(JSON.stringify({ error: msg || 'stripe error' }), { status: 500 });
   }
 }
