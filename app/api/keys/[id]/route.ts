@@ -8,11 +8,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '20
 
 export async function DELETE(req: NextRequest, context: any) {
   const id = context?.params?.id;
-  const cookie = req.headers.get('cookie') || '';
-  const tokenMatch = cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('token='));
-  const token = tokenMatch ? tokenMatch.replace('token=', '') : null;
+  // try to extract JWT from cookie or Authorization header
+  const cookieHeader = req.headers.get('cookie') || '';
+  let token: string | null = null;
+  const m = cookieHeader.match(/(?:^|; )token=([^;]+)/);
+  if (m) token = m[1];
+  if (!token) {
+    const auth = req.headers.get('authorization') || '';
+    if (auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
+  }
   const payload: any = token ? verifyJwt(token) : null;
-  if (!payload) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  if (!payload) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
 
   // file-based users.json handling
   const users = await readJson<any[]>('users.json');
