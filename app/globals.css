@@ -156,6 +156,8 @@ h1,h2,h3,h4,h5,h6 {
 /* Utility classes to mirror simple Tailwind-like tokens used in templates */
 .bg-foreground { background: var(--foreground) !important; }
 .bg-panel { background: var(--panel) !important; }
+.text-panel { color: var(--panel) !important; }
+.btn-panel { background: var(--panel); color: var(--background); border: none; padding: .5rem 1rem; border-radius: .375rem; }
 .text-background { color: var(--background) !important; }
 .border-foreground { border-color: var(--card-foreground) !important; }
 .btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
