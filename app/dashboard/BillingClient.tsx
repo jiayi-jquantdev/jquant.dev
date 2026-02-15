@@ -9,7 +9,7 @@ export default function BillingClient() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceKeyName: 'TWENTYCALLS_PRICE_ID' }) });
+      const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceKeyName: 'TENCALLS_PRICE_ID' }) });
       const j = await res.json();
       if (res.ok && j.url) {
         window.location.href = j.url;

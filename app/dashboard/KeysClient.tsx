@@ -162,10 +162,11 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
             <div className="mt-6 flex items-center justify-between">
               <div className="font-medium text-background">Create paid key</div>
               <div className="flex gap-2">
-                <button onClick={() => purchasePrice('TWENTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 20 calls per minute</button>
+                <button onClick={() => purchasePrice('TENCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 10 calls per minute</button>
+                <button onClick={() => purchasePrice('TWENTYFIVECALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 25 calls per minute</button>
                 <button onClick={() => purchasePrice('FIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 50 calls per minute</button>
                 <button onClick={() => purchasePrice('HUNDREDFIFTYCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 150 calls per minute</button>
-                <button onClick={() => purchasePrice('SIXHUNDREDCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 600 calls per minute</button>
+                <button onClick={() => purchasePrice('FIVEHUNDREDCALLS_PRICE_ID')} className="px-4 py-2 border rounded">Buy 500 calls per minute</button>
               </div>
             </div>
           )}

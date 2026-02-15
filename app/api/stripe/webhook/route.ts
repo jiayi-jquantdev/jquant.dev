@@ -1,9 +1,32 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { randomUUID } from "crypto";
-import { addApiKeyForUser, findUserById, recordPayment } from "../../../../lib/db";
+import { addApiKeyForUser, findUserById, recordPayment, listKeysForUser } from "../../../../lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2022-11-15" });
+
+// map configured price env names to calls per minute
+const ENV_PRICE_TO_CALLS: Record<string, number> = {
+  TENCALLS_PRICE_ID: 10,
+  TWENTYFIVECALLS_PRICE_ID: 25,
+  FIFTYCALLS_PRICE_ID: 50,
+  HUNDREDFIFTYCALLS_PRICE_ID: 150,
+  FIVEHUNDREDCALLS_PRICE_ID: 500,
+};
+
+function getCallsFromPriceKey(keyOrId?: string) {
+  if (!keyOrId) return 60;
+  // if the stored value is an env var name like 'TENCALLS_PRICE_ID'
+  if ((ENV_PRICE_TO_CALLS as any)[keyOrId]) return (ENV_PRICE_TO_CALLS as any)[keyOrId];
+  // otherwise check against actual configured price ids
+  for (const envName of Object.keys(ENV_PRICE_TO_CALLS)) {
+    const pid = process.env[envName];
+    if (pid && pid === keyOrId) return (ENV_PRICE_TO_CALLS as any)[envName];
+    // also allow partial match if someone stored the env name in the string
+    if (keyOrId.includes(envName.replace('_PRICE_ID', ''))) return (ENV_PRICE_TO_CALLS as any)[envName];
+  }
+  return 60;
+}
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature') || '';
@@ -31,18 +54,18 @@ export async function POST(req: NextRequest) {
     if (userId) {
       // verify amount matches price if possible
       let callsPerMin = 60;
-      if (priceKeyName && process.env[priceKeyName]) {
+      if (priceKeyName) {
         try {
-          const price = await stripe.prices.retrieve(process.env[priceKeyName] as string);
-          const expected = price.unit_amount || 0;
-          if ((pi.amount || 0) !== expected) {
-            // amount mismatch, do not grant key
-            return new Response(JSON.stringify({ received: false, reason: 'amount_mismatch' }), { status: 400 });
+          const priceId = process.env[priceKeyName] || priceKeyName;
+          if (priceId) {
+            const price = await stripe.prices.retrieve(priceId as string);
+            const expected = price.unit_amount || 0;
+            if ((pi.amount || 0) !== expected) {
+              // amount mismatch, do not grant key
+              return new Response(JSON.stringify({ received: false, reason: 'amount_mismatch' }), { status: 400 });
+            }
+            callsPerMin = getCallsFromPriceKey(priceKeyName) || getCallsFromPriceKey(priceId);
           }
-          // map priceKeyName to calls per minute
-          if (priceKeyName.includes('TWENTY')) callsPerMin = 20;
-          else if (priceKeyName.includes('FIFTY')) callsPerMin = 50;
-          else if (priceKeyName.includes('HUNDREDFIFTY')) callsPerMin = 216;
         } catch (e) {
           // if price lookup fails, continue but log
         }
@@ -53,9 +76,13 @@ export async function POST(req: NextRequest) {
 
       const user = await findUserById(userId);
       if (user) {
-        const id = randomUUID();
-        const newKey = { id, key: id, name: 'Paid key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName };
-        await addApiKeyForUser(userId, newKey);
+        // only add a paid key if the user doesn't already have one
+        const existing = await listKeysForUser(user.id);
+        if (!(existing || []).some((k: any) => (k as any).tier === 'paid')) {
+          const id = randomUUID();
+          const newKey = { id, key: id, name: 'Paid key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName };
+          await addApiKeyForUser(userId, newKey);
+        }
       }
     }
   }
@@ -72,9 +99,7 @@ export async function POST(req: NextRequest) {
         const priceId = subscription.items.data[0]?.price?.id;
         let callsPerMin = 60;
         if (priceId) {
-          if (priceId.includes('TWENTY')) callsPerMin = 20;
-          else if (priceId.includes('FIFTY')) callsPerMin = 50;
-          else if (priceId.includes('HUNDREDFIFTY')) callsPerMin = 216;
+          callsPerMin = getCallsFromPriceKey(priceId);
         }
 
         let user = null;
@@ -84,10 +109,17 @@ export async function POST(req: NextRequest) {
         }
 
         if (user) {
-          const id = randomUUID();
-          const newKey = { id, key: id, name: 'Subscription key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName: priceId || null, subscriptionId };
-          await addApiKeyForUser(user.id, newKey);
-          await recordPayment(user.id, priceId || null, (session.amount_total as any) || 0, subscriptionId || '');
+          // only add a paid key if the user doesn't already have one
+          const existing = await listKeysForUser(user.id);
+          if (!(existing || []).some((k: any) => (k as any).tier === 'paid')) {
+            const id = randomUUID();
+            const newKey = { id, key: id, name: 'Subscription key', tier: 'paid', limit: callsPerMin, createdAt: new Date().toISOString(), priceKeyName: priceId || null, subscriptionId };
+            await addApiKeyForUser(user.id, newKey);
+            await recordPayment(user.id, priceId || null, (session.amount_total as any) || 0, subscriptionId || '');
+          } else {
+            // still record payment but do not create a duplicate paid key
+            await recordPayment(user.id, priceId || null, (session.amount_total as any) || 0, subscriptionId || '');
+          }
         }
       } catch (e) {
         // ignore

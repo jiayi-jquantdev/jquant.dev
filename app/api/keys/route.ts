@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   // Prevent more than one paid key per account
   if (tier === 'paid') {
     const existing = await listKeysForUser(user.id);
-    if ((existing || []).some(k => (k as any).tier === 'paid')) {
+    if ((existing || []).some((k: any) => (k as any).tier === 'paid')) {
       return new Response(JSON.stringify({ error: 'Account already has a paid key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
   }
