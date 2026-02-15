@@ -23,15 +23,22 @@ body {
   overflow-x: hidden;
 }
 
+/* Main content area: limit vertical scrolling to the viewport minus header/footer */
+.main-content {
+  max-height: calc(100vh - var(--header-height) - var(--footer-height));
+  overflow-y: auto;
+}
+
 .sidebar {
   background: #ffffff;
   color: var(--foreground);
   border: 1px solid #e6e6e6;
   position: sticky;
   top: var(--header-height);
-  height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height) - var(--footer-height));
   border-radius: 6px;
   padding: 1rem;
+  overflow-y: auto;
 }
 
 .card {

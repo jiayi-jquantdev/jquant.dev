@@ -10,9 +10,9 @@ export default async function Home() {
   if (payload) redirect('/dashboard');
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <main className="w-full">
-        <section className="min-h-[72vh] flex items-center">
+    <div className="h-full flex items-center justify-center">
+      <main className="w-full h-full">
+        <section className="h-full flex items-center">
           <div className="max-w-4xl mx-auto px-6 py-20 text-center">
             <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight text-foreground">jquant.dev</h1>
             <ul className="list-disc list-inside text-lg md:text-xl text-foreground mb-8 space-y-3 leading-relaxed">

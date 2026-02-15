@@ -22,8 +22,8 @@ export default function LoginClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <form onSubmit={submit} className="w-full max-w-md bg-background p-8 rounded shadow">
+    <div className="h-full flex items-center justify-center p-8 overflow-hidden">
+      <form onSubmit={submit} className="w-full max-w-md bg-background p-8 rounded shadow overflow-hidden">
         <h2 className="text-xl font-medium mb-4">Log in</h2>
         {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
         <label className="block mb-2">

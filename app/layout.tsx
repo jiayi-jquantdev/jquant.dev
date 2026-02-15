@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto pb-16">
+          <main className="main-content flex-1 pb-16">
             <div className="max-w-7xl mx-auto px-4 py-8">{children}</div>
           </main>
 
