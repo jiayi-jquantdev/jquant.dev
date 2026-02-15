@@ -1,9 +1,5 @@
 {
-  "build": {
-    "env": {
-      "alphavantage_api_key": "@ALPHAVANTAGE_API_KEY"
-    }
-  },
+  "build": {},
   "functions": {
     "api/**/*.py": {
       "runtime": "python3.11"
