@@ -26,15 +26,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center w-full">
         <div className="mb-6" />
 
-        <section className="panel p-6 rounded shadow mb-6">
+        <section className="panel p-6 rounded shadow mb-6 w-full">
           <h3 className="font-medium mb-2">API Keys</h3>
           <KeysClient initialKeys={userKeys} />
         </section>
 
-        <section className="panel p-6 rounded shadow">
+        <section className="panel p-6 rounded shadow w-full">
           <PaymentMethodsClient />
         </section>
       </div>

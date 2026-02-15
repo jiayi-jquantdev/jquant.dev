@@ -107,11 +107,16 @@
 
 /* Always use the chosen light theme colors (no automatic dark mode) */
 
+html, body, #__next {
+  height: 100vh;
+  overflow: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* Headings use the Poppins heading font for better display */
@@ -119,12 +124,13 @@ h1,h2,h3,h4,h5,h6 {
   font-family: var(--font-heading);
 }
 
-/* Main content area: limit vertical scrolling to the viewport minus header/footer */
+/* Main content area: fixed height (viewport minus header) and center children */
 .main-content {
-  /* limit the scrolling area to the viewport minus header; contain overscroll to avoid body bleed */
-  max-height: calc(100vh - var(--header-height));
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  height: calc(100vh - var(--header-height));
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar {
@@ -230,6 +236,9 @@ header nav > button:hover {
 
 /* Make main content horizontally scroll within limits */
 .max-w-7xl { max-width: 80rem; }
+
+/* Make utility `.min-h-screen` collapse to the available viewport (no scrolling) and center contents */
+.min-h-screen { height: calc(100vh - var(--header-height)); display:flex; align-items:center; justify-content:center; }
 
 /* Three-dot popup menus: force pure white background and sit above other controls */
 .key-menu {
