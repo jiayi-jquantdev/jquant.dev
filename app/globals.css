@@ -160,8 +160,9 @@ h1,h2,h3,h4,h5,h6 {
 .btn-panel { background: var(--panel); color: var(--background); border: none; padding: .5rem 1rem; border-radius: .375rem; }
 .text-background { color: var(--background) !important; }
 .border-foreground { border-color: var(--card-foreground) !important; }
-.btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-.btn-primary { background: var(--foreground); color: var(--background); padding: .5rem 1rem; border-radius: .375rem; border: none; }
+/* Buttons: default to card (white) background with card-foreground text and no hover styles */
+.btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); padding: .5rem 1rem; border-radius: .375rem; transition: none; }
+.btn-primary { background: var(--card); color: var(--card-foreground); padding: .5rem 1rem; border-radius: .375rem; border: 1px solid var(--border); transition: none; }
 /* footer removed; kept for compatibility if referenced */
 .mobile-drawer { background: rgba(45,45,45,0.35); display: flex; }
 .mobile-drawer > .drawer-panel { min-height: 100vh; transform: translateX(-100%); transition: transform .28s cubic-bezier(.2,.9,.2,1); }
@@ -173,31 +174,34 @@ button, a, input, select, textarea { cursor: pointer; }
 
 /* Button hover styles: transform outline buttons to white background with dark text */
 button, .btn, input[type="button"], input[type="submit"] {
-  transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .12s ease;
   box-sizing: border-box;
-  /* keep a consistent border so hover doesn't shift layout */
-  border: 1px solid transparent;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  transition: none;
 }
 
 /* Outline buttons (common pattern: have border but no bg) */
 button.border, .btn.border, a.border, button[role="button"] {
   border-color: rgba(45,45,45,0.06);
 }
+/* Disable hover style changes: keep buttons visually constant */
 button.border:hover, .btn.border:hover, a.border:hover, button[role="button"]:hover, a.btn:hover {
   background: var(--card);
-  color: var(--foreground) !important;
-  border-color: var(--foreground) !important;
+  color: var(--card-foreground) !important;
+  border-color: var(--border) !important;
 }
 
 /* Ensure small icon buttons like the three-dot menu get visible hover */
 button.px-2:hover, button.px-2.py-1:hover {
   background: var(--card);
-  color: var(--foreground);
+  color: var(--card-foreground);
 }
 
 /* Primary buttons invert subtly on hover */
 .btn-primary:hover {
-  opacity: 0.95;
+  background: var(--card);
+  color: var(--card-foreground);
 }
 
 /* Avoid focus outlines changing size */

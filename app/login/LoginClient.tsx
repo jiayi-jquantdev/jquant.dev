@@ -23,19 +23,19 @@ export default function LoginClient() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8" style={{ transform: 'translateY(-1rem)' }}>
-      <form onSubmit={submit} className="w-full max-w-md bg-background p-8 rounded shadow text-panel">
+      <form onSubmit={submit} className="w-full max-w-md panel p-8 rounded shadow">
         <h2 className="text-xl font-medium mb-4">Log in</h2>
         {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
         <label className="block mb-2">
           <div className="text-sm">Email</div>
-          <input className="w-full border p-2 rounded" value={email} onChange={e=>setEmail(e.target.value)} />
+          <input className="w-full border p-2 rounded bg-card text-card-foreground" value={email} onChange={e=>setEmail(e.target.value)} />
         </label>
         <label className="block mb-4">
           <div className="text-sm">Password</div>
-          <input type="password" className="w-full border p-2 rounded" value={password} onChange={e=>setPassword(e.target.value)} />
+          <input type="password" className="w-full border p-2 rounded bg-card text-card-foreground" value={password} onChange={e=>setPassword(e.target.value)} />
         </label>
         <div className="flex gap-2">
-          <button type="submit" className="btn btn-panel">Sign in</button>
+          <button type="submit" className="btn">Sign in</button>
         </div>
       </form>
     </div>
