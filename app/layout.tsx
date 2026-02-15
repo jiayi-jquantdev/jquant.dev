@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <div className="min-h-screen flex flex-col">
-          <header className="w-full border-b">
+          <header className="w-full border-b sticky top-0 z-40">
             <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
               <a href="/" className="text-lg font-bold text-foreground">jquant.dev</a>
               <nav className="flex gap-4 items-center">
