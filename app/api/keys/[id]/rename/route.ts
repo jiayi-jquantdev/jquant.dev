@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { verifyJwt } from '../../../../lib/auth';
-import { findUserById, updateApiKeyName } from '../../../../lib/db';
+import { verifyJwt } from '../../../../../lib/auth';
+import { findUserById, updateApiKeyName } from '../../../../../lib/db';
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const id = String((await context.params).id);
