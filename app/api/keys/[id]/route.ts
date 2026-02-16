@@ -66,7 +66,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
   // file-based users.json handling
   const users = await readJson<{ id: string; email: string; keys?: any[] }[]>('users.json');
   const user = users.find(u => u.id === actingUserId);
-  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized', details: ['user_not_found'] }), { status: 401 });
   const keys = user.keys || [];
   const kept: unknown[] = [];
   let deletedKey: Record<string, unknown> | null = null;

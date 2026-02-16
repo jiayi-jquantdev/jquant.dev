@@ -68,7 +68,8 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
         setOpenMenu(null);
       } else {
         const j = await res.json().catch(()=>({}));
-        setError(j.error || 'Could not delete key');
+        const details = j.details && Array.isArray(j.details) ? (": " + j.details.join(", ")) : '';
+        setError((j.error || 'Could not delete key') + details);
       }
     } catch (e: unknown) {
       const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
