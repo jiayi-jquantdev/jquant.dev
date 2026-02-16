@@ -71,6 +71,21 @@ export async function listKeysForUser(userId: string) {
   return (user && user.keys) || [];
 }
 
+export async function removeApiKeyForUser(userId: string, keyIdentifier: string) {
+  if (supabase) {
+    // try deleting by key or id
+    const { error } = await supabase.from('api_keys').delete().or(`key.eq.${keyIdentifier},id.eq.${keyIdentifier}`).eq('user_id', userId);
+    if (error) throw error;
+    return true;
+  }
+  const users = await readJson<User[]>('users.json');
+  const user = users.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.keys = (user.keys || []).filter((kk: Key) => kk.id !== keyIdentifier && kk.key !== keyIdentifier);
+  await writeJson('users.json', users);
+  return true;
+}
+
 export async function findUserByApiKey(apiKey: string) {
   if (supabase) {
     const { data, error } = await supabase.from('api_keys').select('key, user_id, tier, created_at, metadata, users(id,email)').eq('key', apiKey).limit(1).maybeSingle();

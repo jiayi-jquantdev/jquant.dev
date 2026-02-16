@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { verifyJwt } from "../../../../lib/auth";
-import { readJson, writeJson } from "../../../../lib/fs-utils";
-import { findUserByApiKey } from "../../../../lib/db";
+import { findUserByApiKey, findUserById, listKeysForUser, removeApiKeyForUser } from "../../../../lib/db";
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2022-11-15' });
@@ -63,18 +62,17 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     return new Response(JSON.stringify({ error: "Unauthorized", details: debug }), { status: 401, headers: { "Content-Type": "application/json" } });
   }
 
-  // file-based users.json handling
-  const users = await readJson<{ id: string; email: string; keys?: any[] }[]>('users.json');
-  const user = users.find(u => u.id === actingUserId);
+  // Resolve user using shared DB helper (supports Supabase or file-based)
+  const user = await findUserById(actingUserId);
   if (!user) return new Response(JSON.stringify({ error: 'Unauthorized', details: ['user_not_found'] }), { status: 401 });
-  const keys = user.keys || [];
-  const kept: unknown[] = [];
+
+  // load keys via shared helper so this works with Supabase or file-based users
+  const keys = (await listKeysForUser(user.id)) || [];
   let deletedKey: Record<string, unknown> | null = null;
   for (const k of keys) {
     if ((k as any).id === id || (k as any).key === id) {
       deletedKey = k as Record<string, unknown>;
-    } else {
-      kept.push(k);
+      break;
     }
   }
   // Before deleting the key, ensure there are no active Stripe subscriptions tied to it.
@@ -144,9 +142,12 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     }
   }
 
-  // Safe to delete: write back users.json with key removed
-  user.keys = kept;
-  await writeJson('users.json', users);
+  // Safe to delete: use shared DB helper to remove the key
+  try {
+    await removeApiKeyForUser(user.id, id);
+  } catch (e) {
+    return new Response(JSON.stringify({ error: 'Delete failed', details: ['remove_failed'] }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
 
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
