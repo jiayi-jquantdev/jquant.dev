@@ -8,44 +8,60 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '20
 
 export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const id = String((await context.params).id);
-  // try to extract JWT from cookie or Authorization header
-  const cookieHeader = req.headers.get('cookie') || '';
-  const cookieMatch = cookieHeader.match(/(?:^|; )token=([^;]+)/);
-  const cookieToken = cookieMatch ? cookieMatch[1] : null;
-  const authHeader = req.headers.get('authorization') || '';
-  const authBearer = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '').trim() : null;
+
+  // Extract cookie token in the same way as other key routes
+  const cookieHeader = req.headers.get("cookie") || "";
+  const tokenMatch = cookieHeader.split(";").map((s) => s.trim()).find((s) => s.startsWith("token="));
+  const cookieToken = tokenMatch ? tokenMatch.replace("token=", "") : null;
+
+  // Extract Authorization bearer token if present
+  const authHeader = req.headers.get("authorization") || "";
+  const authBearer = authHeader.startsWith("Bearer ") ? authHeader.replace("Bearer ", "").trim() : null;
 
   let actingUserId: string | null = null;
+  const debug: string[] = [];
 
-  // Prefer JWT verification: try cookie token then Authorization bearer as JWT
-  try {
-    if (cookieToken) {
-      const p = verifyJwt(cookieToken);
-      if (p && (p as any).id) actingUserId = String((p as any).id);
+  // 1) Try cookie JWT (same approach used in app/api/keys/route.ts)
+  if (cookieToken) {
+    const p = verifyJwt(cookieToken as string);
+    if (p && (p as any).id) {
+      actingUserId = String((p as any).id);
+    } else {
+      debug.push("invalid_jwt_cookie");
     }
-  } catch (e) {
-    // ignore
+  } else {
+    debug.push("no_jwt_cookie");
   }
+
+  // 2) If still not authenticated, try Authorization Bearer as JWT
   if (!actingUserId && authBearer) {
-    try {
-      const p = verifyJwt(authBearer);
-      if (p && (p as any).id) actingUserId = String((p as any).id);
-    } catch (e) {
-      // ignore
+    const p = verifyJwt(authBearer as string);
+    if (p && (p as any).id) {
+      actingUserId = String((p as any).id);
+    } else {
+      debug.push("invalid_jwt_bearer");
     }
+  } else if (!authBearer) {
+    debug.push("no_authorization_header");
   }
 
-  // If no JWT found, treat Authorization bearer as an API key and resolve user by key
+  // 3) Finally, allow Authorization bearer to be an API key
   if (!actingUserId && authBearer) {
     try {
       const found = await findUserByApiKey(authBearer);
-      if (found && found.user && (found.user as any).id) actingUserId = String((found.user as any).id);
+      if (found && found.user && (found.user as any).id) {
+        actingUserId = String((found.user as any).id);
+      } else {
+        debug.push("api_key_not_found");
+      }
     } catch (e) {
-      // ignore
+      debug.push("api_key_lookup_failed");
     }
   }
 
-  if (!actingUserId) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+  if (!actingUserId) {
+    return new Response(JSON.stringify({ error: "Unauthorized", details: debug }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
 
   // file-based users.json handling
   const users = await readJson<{ id: string; email: string; keys?: any[] }[]>('users.json');
