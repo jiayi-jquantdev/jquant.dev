@@ -75,6 +75,10 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
       break;
     }
   }
+  // Disallow deleting free-tier keys
+  if (deletedKey && (deletedKey as any).tier === 'free') {
+    return new Response(JSON.stringify({ error: 'Free keys cannot be deleted', details: ['free_key_cannot_be_deleted'] }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
   // Before deleting the key, ensure there are no active Stripe subscriptions tied to it.
   if (deletedKey) {
     try {
