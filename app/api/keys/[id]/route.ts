@@ -83,7 +83,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
         try {
           const sub = await stripe.subscriptions.retrieve(String(deletedKey.subscriptionId)).catch(()=>null);
           if (sub && (sub as any).status && (sub as any).status !== 'canceled' && (sub as any).status !== 'incomplete_expired' && (sub as any).status !== 'deleted') {
-            return new Response(JSON.stringify({ error: 'Active subscription detected', details: 'Cancel the Stripe subscription before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+            return new Response(JSON.stringify({ error: 'Active subscription detected. Please cancel/pause your subscription in the customer center below to delete your API key. You can resubscribe anytime and gain a new key.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
           }
         } catch (e) {
           // If we cannot retrieve subscription, be conservative and block deletion
@@ -117,7 +117,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
               return false;
             });
             if (match) {
-              return new Response(JSON.stringify({ error: 'Active subscription detected', details: 'Cancel the Stripe subscription before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+              return new Response(JSON.stringify({ error: 'Active subscription detected. Please cancel/pause your subscription in the customer center below to delete your API key. You can resubscribe anytime and gain a new key.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
             }
           }
         }
@@ -130,7 +130,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
           for (const s of (subs.data || [])) {
             const status = (s as any).status;
             if (status && status !== 'canceled' && status !== 'incomplete_expired' && status !== 'deleted') {
-              return new Response(JSON.stringify({ error: 'Active subscription detected', details: 'Cancel the Stripe subscription before deleting the key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+              return new Response(JSON.stringify({ error: 'Active subscription detected. Please cancel/pause your subscription in the customer center below to delete your API key. You can resubscribe anytime and gain a new key.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
             }
           }
         }
