@@ -73,9 +73,11 @@ export async function listKeysForUser(userId: string) {
 
 export async function removeApiKeyForUser(userId: string, keyIdentifier: string) {
   if (supabase) {
-    // try deleting by key or id
-    const { error } = await supabase.from('api_keys').delete().or(`key.eq.${keyIdentifier},id.eq.${keyIdentifier}`).eq('user_id', userId);
-    if (error) throw error;
+    // Try deleting by `key` first, then by `id`. Use two safe delete attempts
+    const { error: errKey } = await supabase.from('api_keys').delete().match({ user_id: userId, key: keyIdentifier });
+    if (errKey) throw errKey;
+    const { error: errId } = await supabase.from('api_keys').delete().match({ user_id: userId, id: keyIdentifier });
+    if (errId) throw errId;
     return true;
   }
   const users = await readJson<User[]>('users.json');
