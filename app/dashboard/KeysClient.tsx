@@ -175,8 +175,8 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
                       <button onClick={() => toggleMenu(keyId)} className="px-2 py-1 border rounded">⋯</button>
                       {openMenu === keyId && (
                         <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2 key-menu">
-                          <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
-                          {k.tier === 'paid' && <button onClick={async () => {
+                            {k.tier !== 'free' && <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>}
+                            {k.tier === 'paid' && <button onClick={async () => {
                               setProcessing(true); setError(null);
                               try {
                                 const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}/rotate`, { method: 'POST', credentials: 'include' });
