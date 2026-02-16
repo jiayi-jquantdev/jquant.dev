@@ -1,9 +1,13 @@
 import { readJson, writeJson } from "./fs-utils";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
+// Support multiple env var names for the Supabase server secret
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.supabase_secret_key || process.env.SUPABASE_ANON_KEY || '';
+
 let supabase: SupabaseClient | null = null;
-if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+if (SUPABASE_URL && SUPABASE_KEY) {
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     // server-side only
   });
 }
@@ -74,8 +78,8 @@ export async function listKeysForUser(userId: string) {
 export async function removeApiKeyForUser(userId: string, keyIdentifier: string) {
   if (supabase) {
     // Use REST API with service role to avoid client-side schema assumptions
-    const base = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const base = SUPABASE_URL;
+    const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyIdentifier)}`;
     const res = await fetch(url, { method: 'DELETE', headers: { apikey: key, Authorization: `Bearer ${key}` } });
@@ -95,8 +99,8 @@ export async function removeApiKeyForUser(userId: string, keyIdentifier: string)
 
 export async function updateApiKeyName(userId: string, keyId: string, name: string) {
   if (supabase) {
-    const base = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const base = SUPABASE_URL;
+    const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
     const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { name } }) });
@@ -123,8 +127,8 @@ export async function updateApiKeyName(userId: string, keyId: string, name: stri
 export async function rotateApiKeyForUser(userId: string, keyId: string) {
   const newKey = typeof (globalThis as any)?.crypto?.randomUUID === 'function' ? (globalThis as any).crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
   if (supabase) {
-     const base = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const base = SUPABASE_URL;
+    const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
     const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ key: newKey }) });
@@ -150,8 +154,8 @@ export async function rotateApiKeyForUser(userId: string, keyId: string) {
 
 export async function markKeyRevealed(userId: string, keyId: string) {
   if (supabase) {
-    const base = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const base = SUPABASE_URL;
+    const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
     const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { revealed: true } }) });
