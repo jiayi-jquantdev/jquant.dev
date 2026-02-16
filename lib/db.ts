@@ -3,7 +3,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 // Support multiple env var names for the Supabase server secret
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.supabase_secret_key || process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.supabase_secret_key || '';
 
 let supabase: SupabaseClient | null = null;
 if (SUPABASE_URL && SUPABASE_KEY) {
@@ -82,7 +82,7 @@ export async function removeApiKeyForUser(userId: string, keyIdentifier: string)
     const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyIdentifier)}`;
-    const res = await fetch(url, { method: 'DELETE', headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const res = await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${key}` } });
     if (!res.ok) {
       const text = await res.text().catch(()=>null);
       throw new Error(String(text) || 'delete failed');
@@ -103,7 +103,7 @@ export async function updateApiKeyName(userId: string, keyId: string, name: stri
     const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
-    const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { name } }) });
+    const res = await fetch(url, { method: 'PATCH', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { name } }) });
     if (!res.ok) {
       const text = await res.text().catch(()=>null);
       throw new Error(String(text) || 'update failed');
@@ -131,7 +131,7 @@ export async function rotateApiKeyForUser(userId: string, keyId: string) {
     const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
-    const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ key: newKey }) });
+    const res = await fetch(url, { method: 'PATCH', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ key: newKey }) });
     if (!res.ok) {
       const text = await res.text().catch(()=>null);
       throw new Error(String(text) || 'rotate failed');
@@ -158,7 +158,7 @@ export async function markKeyRevealed(userId: string, keyId: string) {
     const key = SUPABASE_KEY;
     if (!base || !key) throw new Error('Supabase config missing');
     const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
-    const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { revealed: true } }) });
+    const res = await fetch(url, { method: 'PATCH', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { revealed: true } }) });
     if (!res.ok) {
       const text = await res.text().catch(()=>null);
       throw new Error(String(text) || 'mark revealed failed');
