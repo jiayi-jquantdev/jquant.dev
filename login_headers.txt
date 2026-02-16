@@ -1,0 +1,21 @@
+HTTP/2 307 
+cache-control: public, max-age=0, must-revalidate
+content-type: text/plain
+date: Mon, 16 Feb 2026 01:08:13 GMT
+location: https://www.jquant.dev/api/auth/login
+server: Vercel
+strict-transport-security: max-age=63072000
+x-vercel-id: sin1::x7928-1771204093131-340ce6efd4fe
+
+HTTP/2 200 
+cache-control: public, max-age=0, must-revalidate
+content-type: application/json
+date: Mon, 16 Feb 2026 01:08:14 GMT
+server: Vercel
+set-cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc4NzY0M2IyLThmOGMtNGY4Zi1iNTIzLWI4MjUxMzUwYzE5NiIsImVtYWlsIjoidGVzdEBnbWFpbC5jb20iLCJpYXQiOjE3NzEyMDQwOTQsImV4cCI6MTc3MTgwODg5NH0.CjidKTKRDIwdae8UbzZOiUbkSTW2B6XqT5YQeleR2Eg; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax
+strict-transport-security: max-age=63072000
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+x-matched-path: /api/auth/login
+x-vercel-cache: MISS
+x-vercel-id: sin1::iad1::rfwjt-1771204093234-c70e81586f19
+

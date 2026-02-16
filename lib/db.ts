@@ -73,11 +73,16 @@ export async function listKeysForUser(userId: string) {
 
 export async function removeApiKeyForUser(userId: string, keyIdentifier: string) {
   if (supabase) {
-    // Try deleting by `key` first, then by `id`. Use two safe delete attempts
-    const { error: errKey } = await supabase.from('api_keys').delete().match({ user_id: userId, key: keyIdentifier });
-    if (errKey) throw errKey;
-    const { error: errId } = await supabase.from('api_keys').delete().match({ user_id: userId, id: keyIdentifier });
-    if (errId) throw errId;
+    // Use REST API with service role to avoid client-side schema assumptions
+    const base = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!base || !key) throw new Error('Supabase config missing');
+    const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyIdentifier)}`;
+    const res = await fetch(url, { method: 'DELETE', headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    if (!res.ok) {
+      const text = await res.text().catch(()=>null);
+      throw new Error(String(text) || 'delete failed');
+    }
     return true;
   }
   const users = await readJson<User[]>('users.json');
@@ -90,8 +95,15 @@ export async function removeApiKeyForUser(userId: string, keyIdentifier: string)
 
 export async function updateApiKeyName(userId: string, keyId: string, name: string) {
   if (supabase) {
-    const { error } = await supabase.from('api_keys').update({ metadata: { name } }).match({ user_id: userId, id: keyId });
-    if (error) throw error;
+    const base = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!base || !key) throw new Error('Supabase config missing');
+    const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
+    const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { name } }) });
+    if (!res.ok) {
+      const text = await res.text().catch(()=>null);
+      throw new Error(String(text) || 'update failed');
+    }
     return true;
   }
   const users = await readJson<User[]>('users.json');
@@ -111,8 +123,15 @@ export async function updateApiKeyName(userId: string, keyId: string, name: stri
 export async function rotateApiKeyForUser(userId: string, keyId: string) {
   const newKey = typeof (globalThis as any)?.crypto?.randomUUID === 'function' ? (globalThis as any).crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
   if (supabase) {
-    const { error } = await supabase.from('api_keys').update({ key: newKey }).match({ user_id: userId, id: keyId });
-    if (error) throw error;
+     const base = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!base || !key) throw new Error('Supabase config missing');
+    const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
+    const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ key: newKey }) });
+    if (!res.ok) {
+      const text = await res.text().catch(()=>null);
+      throw new Error(String(text) || 'rotate failed');
+    }
     return newKey;
   }
   const users = await readJson<User[]>('users.json');
@@ -131,8 +150,15 @@ export async function rotateApiKeyForUser(userId: string, keyId: string) {
 
 export async function markKeyRevealed(userId: string, keyId: string) {
   if (supabase) {
-    const { error } = await supabase.from('api_keys').update({ metadata: { revealed: true } }).match({ user_id: userId, id: keyId });
-    if (error) throw error;
+    const base = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!base || !key) throw new Error('Supabase config missing');
+    const url = `${base.replace(/\/$/, '')}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&key=eq.${encodeURIComponent(keyId)}`;
+    const res = await fetch(url, { method: 'PATCH', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { revealed: true } }) });
+    if (!res.ok) {
+      const text = await res.text().catch(()=>null);
+      throw new Error(String(text) || 'mark revealed failed');
+    }
     return true;
   }
   const users = await readJson<User[]>('users.json');
