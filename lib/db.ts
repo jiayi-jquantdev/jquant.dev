@@ -88,6 +88,68 @@ export async function removeApiKeyForUser(userId: string, keyIdentifier: string)
   return true;
 }
 
+export async function updateApiKeyName(userId: string, keyId: string, name: string) {
+  if (supabase) {
+    const { error } = await supabase.from('api_keys').update({ metadata: { name } }).match({ user_id: userId, id: keyId });
+    if (error) throw error;
+    return true;
+  }
+  const users = await readJson<User[]>('users.json');
+  const user = users.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.keys = user.keys || [];
+  for (const k of user.keys) {
+    if ((k as any).id === keyId) {
+      (k as any).name = name;
+      break;
+    }
+  }
+  await writeJson('users.json', users);
+  return true;
+}
+
+export async function rotateApiKeyForUser(userId: string, keyId: string) {
+  const newKey = typeof (globalThis as any)?.crypto?.randomUUID === 'function' ? (globalThis as any).crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
+  if (supabase) {
+    const { error } = await supabase.from('api_keys').update({ key: newKey }).match({ user_id: userId, id: keyId });
+    if (error) throw error;
+    return newKey;
+  }
+  const users = await readJson<User[]>('users.json');
+  const user = users.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.keys = user.keys || [];
+  for (const k of user.keys) {
+    if ((k as any).id === keyId) {
+      (k as any).key = newKey;
+      break;
+    }
+  }
+  await writeJson('users.json', users);
+  return newKey;
+}
+
+export async function markKeyRevealed(userId: string, keyId: string) {
+  if (supabase) {
+    const { error } = await supabase.from('api_keys').update({ metadata: { revealed: true } }).match({ user_id: userId, id: keyId });
+    if (error) throw error;
+    return true;
+  }
+  const users = await readJson<User[]>('users.json');
+  const user = users.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.keys = user.keys || [];
+  for (const k of user.keys) {
+    if ((k as any).id === keyId) {
+      (k as any).metadata = (k as any).metadata || {};
+      (k as any).metadata.revealed = true;
+      break;
+    }
+  }
+  await writeJson('users.json', users);
+  return true;
+}
+
 export async function findUserByApiKey(apiKey: string) {
   if (supabase) {
     const { data, error } = await supabase.from('api_keys').select('key, user_id, tier, created_at, metadata, users(id,email)').eq('key', apiKey).limit(1).maybeSingle();

@@ -10,6 +10,9 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [revealKey, setRevealKey] = useState<string | null>(null);
+  const [oneTimeKeyId, setOneTimeKeyId] = useState<string | null>(null);
+  const [oneTimeMode, setOneTimeMode] = useState<boolean>(false);
+  const [oneTimeName, setOneTimeName] = useState<string>('');
   async function fetchKeys() {
     setLoading(true);
     try {
@@ -30,6 +33,30 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
     }
     setLoading(false);
   }
+
+  // On mount, check for checkout session and request the one-time key
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const checkout = params.get('checkout');
+    if (checkout === 'success' && sessionId) {
+      (async () => {
+        try {
+          const res = await fetch(`/api/stripe/session-result?session_id=${encodeURIComponent(sessionId)}`, { credentials: 'include' });
+          if (res.ok) {
+            const j = await res.json();
+            if (j && j.key) {
+              setRevealKey(j.key);
+              setOneTimeKeyId(j.id || null);
+              setOneTimeMode(true);
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      })();
+    }
+  }, []);
 
   async function createKey() {
     setLoading(true);
@@ -149,7 +176,25 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
                       {openMenu === keyId && (
                         <div className="absolute right-0 mt-2 w-44 bg-background text-foreground border shadow p-2 key-menu">
                           <button onClick={() => handleDelete(keyId)} className="w-full text-left px-2 py-1">Delete key</button>
-                            {k.tier === 'free' && <button onClick={() => { setRevealKey(k.key || k.id || null); setOpenMenu(null); }} className="w-full text-left px-2 py-1">View key</button>}
+                          {k.tier === 'paid' && <button onClick={async () => {
+                              setProcessing(true); setError(null);
+                              try {
+                                const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}/rotate`, { method: 'POST', credentials: 'include' });
+                                const j = await res.json();
+                                if (res.ok && j && j.key) {
+                                  setRevealKey(j.key);
+                                  setOneTimeKeyId(j.id || keyId);
+                                  setOneTimeMode(true);
+                                } else {
+                                  setError(j.error || 'Could not rotate key');
+                                }
+                              } catch (e:any) {
+                                const msg = e && typeof e === 'object' && 'message' in e ? (e as any).message : String(e);
+                                setError(msg || 'Network error');
+                              }
+                              setProcessing(false); setOpenMenu(null);
+                            }} className="w-full text-left px-2 py-1">Change key</button>}
+                          {k.tier === 'free' && <button onClick={() => { setRevealKey(k.key || k.id || null); setOpenMenu(null); }} className="w-full text-left px-2 py-1">View key</button>}
                         </div>
                       )}
                     </div>
@@ -163,11 +208,36 @@ export default function KeysClient({ initialKeys }: { initialKeys: KeyItem[] }) 
           {revealKey && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/40">
               <div className="panel p-6 rounded shadow max-w-md w-full">
-                <h3 className="font-medium mb-3 text-background">API Key</h3>
+                <h3 className="font-medium mb-3 text-background">{oneTimeMode ? 'You can only see this key once' : 'API Key'}</h3>
                 <pre className="bg-white p-3 rounded break-all">{revealKey}</pre>
-                <div className="mt-4 flex justify-end">
-                  <button onClick={() => setRevealKey(null)} className="px-4 py-2 border rounded">Close</button>
-                </div>
+                {oneTimeMode && (
+                  <div className="mt-4">
+                    <input value={oneTimeName} onChange={(e)=>setOneTimeName(e.target.value)} placeholder="Name this key (optional)" className="w-full p-2 border rounded mb-2" />
+                    <div className="flex justify-end gap-2">
+                      <button onClick={async () => {
+                        if (oneTimeKeyId && oneTimeName) {
+                          try {
+                            const res = await fetch(`/api/keys/${encodeURIComponent(oneTimeKeyId)}/rename`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: oneTimeName }) });
+                            if (res.ok) {
+                              await fetchKeys();
+                            }
+                          } catch (e) { }
+                        } else {
+                          // still refresh keys
+                          await fetchKeys();
+                        }
+                        setRevealKey(null); setOneTimeMode(false); setOneTimeKeyId(null); setOneTimeName('');
+                        // remove session params from URL
+                        try { const url = new URL(window.location.href); url.searchParams.delete('session_id'); url.searchParams.delete('checkout'); window.history.replaceState({}, '', url.toString()); } catch(e){}
+                      }} className="px-4 py-2 border rounded">Done</button>
+                    </div>
+                  </div>
+                )}
+                {!oneTimeMode && (
+                  <div className="mt-4 flex justify-end">
+                    <button onClick={() => setRevealKey(null)} className="px-4 py-2 border rounded">Close</button>
+                  </div>
+                )}
               </div>
             </div>
           )}
