@@ -8,7 +8,7 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
   });
 }
 
-type Key = { id?: string; key?: string; tier?: string; priceKeyName?: string; limit?: number; metadata?: Record<string, unknown> };
+type Key = { id?: string; key?: string; tier?: string; priceKeyName?: string; limit?: number; createdAt?: string; metadata?: Record<string, unknown> };
 type User = { id: string; email: string; password: string; created_at?: string; keys?: Key[] };
 
 export async function findUserByEmail(email: string): Promise<User | null> {
