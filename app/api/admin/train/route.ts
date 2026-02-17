@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { findUserByApiKey } from '../../../../lib/db';
+import { info as logInfo, error as logError } from '../../../../lib/logger';
 
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '') || null;
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
       const json = await res.json();
       return new Response(JSON.stringify({ ok: true, remote: true, result: json }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
-      console.log('Failed to call remote ML service', e);
+      logError('Failed to call remote ML service', e);
       return new Response(JSON.stringify({ error: 'Remote retrain failed', details: String(e) }), { status: 500 });
     }
   }
@@ -29,10 +30,10 @@ export async function POST(req: NextRequest) {
     const script = 'ml/train_model.py';
     const proc = spawn('python3', [script], { detached: true, stdio: 'ignore' });
     proc.unref();
-    console.log('Started background training process');
+    logInfo('Started background training process');
     return new Response(JSON.stringify({ ok: true, message: 'Training started' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
-    console.log('Failed to spawn training process', e);
+    logError('Failed to spawn training process', e);
     return new Response(JSON.stringify({ error: 'Failed to start training', details: String(e) }), { status: 500 });
   }
 }

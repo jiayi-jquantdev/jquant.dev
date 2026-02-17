@@ -1,0 +1,193 @@
+{
+  "winsor_low": -0.773533044902349,
+  "winsor_high": 1.6771686224749367,
+  "folds": [
+    {
+      "train_years": [
+        2019,
+        2020,
+        2021
+      ],
+      "test_year": 2022,
+      "r2": -0.19478019651167244,
+      "mae": 0.2873198901996605,
+      "train_n": 208,
+      "test_n": 910
+    },
+    {
+      "train_years": [
+        2020,
+        2021,
+        2022
+      ],
+      "test_year": 2023,
+      "r2": -0.1630816319625521,
+      "mae": 0.24863487138263274,
+      "train_n": 1070,
+      "test_n": 4986
+    },
+    {
+      "train_years": [
+        2021,
+        2022,
+        2023
+      ],
+      "test_year": 2024,
+      "r2": -0.12228830961345105,
+      "mae": 0.24452458320190215,
+      "train_n": 5984,
+      "test_n": 5170
+    },
+    {
+      "train_years": [
+        2022,
+        2023,
+        2024
+      ],
+      "test_year": 2025,
+      "r2": -0.08369899463091102,
+      "mae": 0.24122839713975067,
+      "train_n": 11066,
+      "test_n": 5451
+    },
+    {
+      "train_years": [
+        2023,
+        2024,
+        2025
+      ],
+      "test_year": 2026,
+      "r2": 0.0,
+      "mae": 0.1513091498377324,
+      "train_n": 15607,
+      "test_n": 945
+    }
+  ],
+  "mean_fold_r2": -0.11276982654371732,
+  "mean_fold_mae": 0.23460337835233572,
+  "final_r2": 0.0,
+  "final_mae": 0.10288610996315213,
+  "feature_count": 541,
+  "top30_permutation_importances": [
+    [
+      "totalRevenue",
+      0.0
+    ],
+    [
+      "netIncome",
+      0.0
+    ],
+    [
+      "totalAssets",
+      0.0
+    ],
+    [
+      "totalLiabilities",
+      0.0
+    ],
+    [
+      "operatingCashflow",
+      0.0
+    ],
+    [
+      "r1m",
+      0.0
+    ],
+    [
+      "r3m",
+      0.0
+    ],
+    [
+      "r6m",
+      0.0
+    ],
+    [
+      "r12m",
+      0.0
+    ],
+    [
+      "eps_ttm",
+      0.0
+    ],
+    [
+      "pe",
+      0.0
+    ],
+    [
+      "pb",
+      0.0
+    ],
+    [
+      "pe_sector_median",
+      0.0
+    ],
+    [
+      "pb_sector_median",
+      0.0
+    ],
+    [
+      "pe_vs_sector",
+      0.0
+    ],
+    [
+      "pb_vs_sector",
+      0.0
+    ],
+    [
+      "pe_mean_by_stock",
+      0.0
+    ],
+    [
+      "pe_vs_hist_mean",
+      0.0
+    ],
+    [
+      "r6m_sector_median",
+      0.0
+    ],
+    [
+      "r6m_vs_sector",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_last",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_ttm",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_mean4",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_std4",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_qoq",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_yoy",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_trend_slope",
+      0.0
+    ],
+    [
+      "income_costOfRevenue_improving",
+      0.0
+    ],
+    [
+      "income_costofGoodsAndServicesSold_last",
+      0.0
+    ],
+    [
+      "income_costofGoodsAndServicesSold_ttm",
+      0.0
+    ]
+  ]
+}

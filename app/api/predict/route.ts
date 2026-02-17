@@ -5,6 +5,7 @@ import { predictTicker } from "../../../lib/ml-predict";
 import { readJson, writeJson } from "../../../lib/fs-utils";
 import fs from 'fs';
 import path from 'path';
+import { error as logError } from '../../../lib/logger';
 
 // tier limits (minute and day window)
 const TIERS: Record<string, { minute: number; day: number }> = {
@@ -94,13 +95,13 @@ export async function POST(req: NextRequest) {
       (usages as Record<string, any>)[apiKey] = updated;
       await writeJson('usage.json', usages);
     } catch (e) {
-      console.log('Failed to record usage.json', e);
+      logError('Failed to record usage.json', e);
     }
 
     const out = { ...pred, timestamp: new Date().toISOString() } as unknown as Record<string, unknown>;
     return new Response(JSON.stringify(out), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e: any) {
-    console.log('Prediction error', e?.message || e);
+    logError('Prediction error', e?.message || e);
     const msg = String(e?.message || e || 'Unknown error');
     if (msg.toLowerCase().includes('no overview') || msg.toLowerCase().includes('invalid ticker') || msg.toLowerCase().includes('not found')) {
       return new Response(JSON.stringify({ error: 'Invalid ticker or data not found', details: msg }), { status: 400 });

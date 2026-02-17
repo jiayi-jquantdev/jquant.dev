@@ -1,0 +1,20 @@
+{
+  "unique_prefixes": [
+    "overview",
+    "balance",
+    "cashflow",
+    "earnings",
+    "income"
+  ],
+  "required_mapping": {
+    "overview": "overview",
+    "earnings": "earnings",
+    "income": "income",
+    "balance": "balance",
+    "cashflow": "cashflow",
+    "time_series_daily": null,
+    "time_series_monthly": null
+  },
+  "total_cached": 972,
+  "full_count": 0
+}
