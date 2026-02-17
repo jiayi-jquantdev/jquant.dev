@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import path from 'path';
+import { error as logError } from './logger';
 
 type Prediction = {
   ticker: string;
@@ -53,7 +54,7 @@ export async function predictTicker(ticker: string): Promise<Prediction> {
       const json = await res.json();
       return json as Prediction;
     } catch (e) {
-      console.log('ML service call failed, falling back to local Python:', e);
+      logError('ML service call failed, falling back to local Python:', e);
     }
   }
 

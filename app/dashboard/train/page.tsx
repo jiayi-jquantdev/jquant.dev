@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { error as logError } from '../../../lib/logger';
 import TrainActions from './TrainActions';
 
 type Metrics = { mae?: number; r2?: number; feature_importances?: number[] };
@@ -13,7 +14,7 @@ export default function Page() {
       metrics = JSON.parse(raw) as Metrics;
     }
   } catch (e) {
-    console.log('Failed to read metrics.json', e);
+    logError('Failed to read metrics.json', e);
     metrics = null;
   }
 

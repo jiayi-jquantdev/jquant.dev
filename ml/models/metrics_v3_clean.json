@@ -1,0 +1,21 @@
+{
+  "r2": 0.0,
+  "mae": 0.16673429560442282,
+  "features_used": [
+    "netIncome",
+    "totalRevenue",
+    "totalAssets",
+    "totalLiabilities",
+    "operatingCashflow",
+    "pe",
+    "pb",
+    "pe_vs_sector",
+    "pb_vs_sector",
+    "pe_vs_hist_mean",
+    "r1m",
+    "r3m",
+    "r6m",
+    "r12m",
+    "r6m_vs_sector"
+  ]
+}

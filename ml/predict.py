@@ -16,7 +16,8 @@ import pandas as pd
 
 load_dotenv()
 
-API_KEY = os.getenv('alphavantage_api_key')
+# Prefer uppercase env name; fallback to legacy lowercase
+API_KEY = os.getenv('ALPHAVANTAGE_API_KEY') or os.getenv('alphavantage_api_key')
 ROOT = Path(__file__).resolve().parent
 MODELS_DIR = ROOT / 'models'
 MODEL_PKL = MODELS_DIR / 'stock_predictor.pkl'
@@ -76,7 +77,7 @@ def main():
         sys.exit(1)
     ticker = sys.argv[1].upper()
     if API_KEY is None:
-        print(json.dumps({'error': 'alphavantage_api_key not set'}))
+        print(json.dumps({'error': 'ALPHAVANTAGE_API_KEY not set'}))
         sys.exit(1)
 
     model, features, metrics = load_model()

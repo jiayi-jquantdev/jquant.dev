@@ -1,0 +1,14 @@
+{
+  "winsor_low": -0.773533044902349,
+  "winsor_high": 1.6771686224749367,
+  "topK": 50,
+  "final_r2": 0.0,
+  "final_mae": 0.043617441293713574,
+  "best_params": {
+    "subsample": 1.0,
+    "n_estimators": 400,
+    "max_depth": 3,
+    "learning_rate": 0.1,
+    "colsample_bytree": 1.0
+  }
+}

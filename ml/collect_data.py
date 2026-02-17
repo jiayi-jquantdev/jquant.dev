@@ -12,10 +12,14 @@ from pathlib import Path
 
 load_dotenv()
 
-API_KEY = os.getenv('alphavantage_api_key')
+# Prefer uppercase env name; fallback to legacy lowercase
+API_KEY = os.getenv('ALPHAVANTAGE_API_KEY') or os.getenv('alphavantage_api_key')
 if not API_KEY:
-    print('alphavantage_api_key not set in environment')
+    print('ALPHAVANTAGE_API_KEY not set in environment')
     raise SystemExit(1)
+
+# Rate limit between requests in seconds (can be fractional). For premium keys set to ~0.2 (300/min).
+RATE_SLEEP = float(os.getenv('ALPHAVANTAGE_RATE_LIMIT_SECONDS') or os.getenv('alphavantage_rate_limit_seconds') or 12)
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / 'data'
@@ -56,8 +60,8 @@ def main():
             rows.append(data)
             if fieldnames is None:
                 fieldnames = list(data.keys())
-        # Respect rate limit (12s recommended for premium)
-        time.sleep(12)
+        # Respect configurable rate limit
+        time.sleep(RATE_SLEEP)
 
     if not rows:
         print('No data collected')

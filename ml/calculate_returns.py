@@ -15,10 +15,14 @@ from datetime import datetime
 
 load_dotenv()
 
-API_KEY = os.getenv('alphavantage_api_key')
+# Prefer uppercase env name; fallback to legacy lowercase
+API_KEY = os.getenv('ALPHAVANTAGE_API_KEY') or os.getenv('alphavantage_api_key')
 if not API_KEY:
-    print('alphavantage_api_key not set')
+    print('ALPHAVANTAGE_API_KEY not set')
     raise SystemExit(1)
+
+# Rate limit between requests in seconds (can be fractional). For premium keys set to ~0.2 (300/min).
+RATE_SLEEP = float(os.getenv('ALPHAVANTAGE_RATE_LIMIT_SECONDS') or os.getenv('alphavantage_rate_limit_seconds') or 12)
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / 'data'
@@ -64,7 +68,7 @@ def main():
         ts = fetch_daily(symbol)
         if not ts or len(ts) < 10:
             print(f'Insufficient price data for {symbol}')
-            time.sleep(12)
+            time.sleep(RATE_SLEEP)
             continue
 
         # latest close and close ~126 trading days ago (~6 months)
@@ -75,7 +79,7 @@ def main():
             return_6m = (latest_close / close_6m_ago - 1.0) * 100.0
         except Exception:
             print(f'Error computing return for {symbol}')
-            time.sleep(12)
+            time.sleep(RATE_SLEEP)
             continue
 
         out = dict(row)
@@ -84,7 +88,7 @@ def main():
         out_rows.append(out)
 
         # respect rate limits
-        time.sleep(12)
+        time.sleep(RATE_SLEEP)
 
     if not out_rows:
         print('No training rows created')
